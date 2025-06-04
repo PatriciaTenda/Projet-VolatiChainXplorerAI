@@ -1,3 +1,9 @@
+"""
+Script pour collecter les données historiques du Bitcoin en utilisant yfinance
+et les sauvegarder dans un fichier CSV.
+
+"""
+# Importation des bibliothèques nécessaires
 import yfinance as yf
 
 
@@ -10,4 +16,5 @@ print(btcData.head())
 # Sauvegarder dans un fichier CSV pour traitement manuel
 btcData.to_csv("data/raw/btc_historical_data.csv", index=True)
 
+# Afficher un message de confirmation
 print("Données sauvegardées dans btc_historical_data.csv")
