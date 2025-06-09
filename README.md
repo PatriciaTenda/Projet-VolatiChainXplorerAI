@@ -69,3 +69,13 @@ VolatiChainXplorerAI/
     pip install beautifulsoup4 html5lib
 ``` 
 
+### Extraction via le scraping  de X (anciennement Tweeter)
+```bash
+    # Bibliothèque pour interagir avec l'API de X 
+    pip install tweepy
+    
+    # Bibliothèque pour interagir sans API de X avec une version de python à partir de 3.11 et descandant
+    pip install git+https://github.com/JustAnotherArchivist/snscrape.git
+
+
+```
