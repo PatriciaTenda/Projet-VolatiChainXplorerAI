@@ -10,6 +10,7 @@ VolatiChainXplorer AI est un projet d’analyse de la volatilité du Bitcoin bas
 
 
 # Structure du projet 
+```bash
 VolatiChainXplorerAI/
 ├── data/
 │   ├── raw/               ← données brutes collectées
@@ -23,7 +24,7 @@ VolatiChainXplorerAI/
 ├── api/                   ← ton projet FastAPI (REST)
 ├── database/              ← schémas SQL, scripts d’init, index
 └── README.md              ← explication du projet
-
+```
 
 
 # Installations des librairies 
