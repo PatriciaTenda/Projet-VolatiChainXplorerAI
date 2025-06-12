@@ -11,19 +11,38 @@ VolatiChainXplorer AI est un projet d’analyse de la volatilité du Bitcoin bas
 
 # Structure du projet 
 ```bash
-VolatiChainXplorerAI/
-├── data/
-│   ├── raw/               ← données brutes collectées
-│   ├── cleaned/           ← données nettoyées et prêtes à être utilisées
-│   └── exports/           ← fichiers exportés ou transformés (CSV, JSON, etc.)
-├── scripts/
-│   ├── collect/           ← scripts de collecte (API, scraping, etc.)
-│   ├── clean/             ← scripts de nettoyage
-│   └── import_db/         ← scripts d’import vers PostgreSQL/MongoDB
-├── notebooks/             ← analyses exploratoires (Jupyter)
-├── api/                   ← ton projet FastAPI (REST)
-├── database/              ← schémas SQL, scripts d’init, index
-└── README.md              ← explication du projet
+PROJET-VOLATICHAINXPLORERAI/
+├── api/                                ← Application FastAPI (routes REST, schémas, auth)
+│   └── ...
+├── data/                               ← Données du projet (brutes, nettoyées, exportées)
+│   ├── cleaned/                        ← Données prêtes à l’analyse ou au chargement
+│   ├── exports/                        ← Données enrichies ou résultats exportés
+│   └── raw/                            ← Données collectées (scraping, API, CSV, etc.)
+├── database/                           ← Gestion des bases de données (PostgreSQL et Mongo)
+│   ├── conn_db/
+│   │   └── postgres_client.py          ← Connexion SQLAlchemy à PostgreSQL
+│   ├── models/                         ← Modèles ORM PostgreSQL (SQLAlchemy)
+│   │   ├── __init__.py
+│   │   ├── user_model.py               ← Table t_user (authentification)
+│   │   ├── bitcoin_model.py            ← Table t_bitcoin_price (prix BTC)
+│   │   └── mro_model.py                ← Table t_mro_rate (taux MRO)
+│   └── init_db.py                      ← Script pour créer toutes les tables en BDD
+├── scripts/                            ← Scripts de traitement et import de données
+│   ├── clean/                          ← Nettoyage des données
+│   ├── collect/                        ← Récupération (scraping/API)
+│   └── import_db/
+│       ├── import_postgres.py          ← Insertion des données nettoyées dans PostgreSQL
+│       └── import_mongo.py             ← Insertion future dans MongoDB
+├── notebooks/                          ← Notebooks Jupyter pour analyses exploratoires
+│   ├── scrape_reddit.ipynb             ← Scraping Reddit
+│   └── scrape_twitter.ipynb            ← Scraping Twitter
+├── docker-compose.yml                  ← Fichier Docker Compose pour lancer les services
+├── Dockerfile                          ← Dockerisation de l’API (FastAPI par ex.)
+├── .env                                ← Variables d’environnement (PostgreSQL URL, etc.)
+├── .gitignore                          ← Fichiers ignorés par Git (env, cache, etc.)
+├── README.md                           ← Documentation et guide du projet
+└── requirements.txt                    ← Liste des dépendances Python
+
 ```
 
 
