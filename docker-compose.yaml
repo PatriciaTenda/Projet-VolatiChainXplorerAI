@@ -1,0 +1,36 @@
+#  Version de la syntaxe Docker Compose
+version: "3.9"
+
+#  Définition des services (conteneurs)
+services:
+
+  #  Service PostgreSQL
+  postgres:
+    image: postgres:latest  #  Version la plus recente et stable de postgresSQL
+    container_name: VolatiChainXplorerAI_postgres
+    restart: always
+    env_file:
+      - .env                #  Charger les variables d’environnement depuis le fichier .env
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}          #  username
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}  #  password
+      POSTGRES_DB: ${POSTGRES_DB}              #  database name
+    ports:
+      - "5433:5432"         #  Expose le port PostgreSQL localement
+    volumes:
+      - postgres_data:/var/lib/postgresql/data  #  Volume persistant
+
+  #  Service MongoDB
+  mongo:
+    image: mongo:6
+    container_name: VolatiChainXplorerAI_mongo
+    restart: always
+    ports:
+      - "27017:27017"       #  Port MongoDB par défaut
+    volumes:
+      - mongo_data:/data/db #  Volume persistant MongoDB
+      
+#  Déclaration des volumes pour persister les données même si le conteneur est supprimé
+volumes:
+  postgres_data:
+  mongo_data:
