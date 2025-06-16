@@ -21,7 +21,7 @@ PROJET-VOLATICHAINXPLORERAI/
 │   └── raw/                ← Données collectées à la source
 ├── database/               ← Connexion, modèles ORM, initialisation BDD
 │   ├── conn_db/            ← Fichiers de connexion à PostgreSQL
-│   ├── models/             ← Modèles SQLAlchemy
+│   ├── schemas/             ← Modèles SQLAlchemy, pydentic
 │   └── init_db.py          ← Script de création des tables
 ├── scripts/                ← Traitement et import de données
 │   ├── clean/              ← Nettoyage des données
@@ -29,7 +29,7 @@ PROJET-VOLATICHAINXPLORERAI/
 │   └── import_db/          ← Insertion des données en BDD
 ├── notebooks/              ← Analyses exploratoires (Jupyter)
 ├── setup/                  ← Scripts de lancement (Docker Bash)
-│   └── run_postgres.sh     ← Script de lancement PostgreSQL
+│   └── run_postgres.sh     ← Script de lancement PostgreSQL, MongoDB
 ├── docker-compose.yaml     ← Orchestration des services Docker
 ├── Dockerfile              ← Dockerisation de l’API
 ├── .env                    ← Variables d’environnement
@@ -153,4 +153,33 @@ PROJET-VOLATICHAINXPLORERAI/
 ```bash
     # Installation de SQLAlchimy
         pip install SQLAlchemy psycopg2-binary
+```
+#### Installation de la librairie alembic pour la gestion des versions avec SQLAlchemy
+```bash
+    # Installation du dossier d'alembic
+        pip install alembic
+    
+    # Initialisation de l'environnement d'alembic (Option choisi pour le projet)
+        alembic init 
+        
+    # ou exécuter cette commande pour une intégration moderne avec les projets qui suivent la norme PEP 518 (nouveau et plus moderne)
+        alembic init --template pyproject alembic
+
+    # Pour creer une nouvelle révision, utiliser le script de création d'une migration de la manière suivante :
+       alembic revision --autogenerate -m "create all macro and btc tables"
+
+        
+    # Pour exécuter une première migration
+        alembic upgrade head
+
+    # Pour exécuter une seconde migration ( Par exemple,  on peut ajouter dans une table déjà créée une nouvelle colonne)
+        alembic revision --autogenerate -m "Added account table" # Au cas où
+
+    # A l'inverse pour downgrade la migration c'est - à - dire retourner au debut de la migration
+        alembic downgrade 
+```
+### Schémas des entrées/sorties avec pydantic
+```bash
+    # Installation de la librairie pydantic
+        pip install pydantic
 ```
