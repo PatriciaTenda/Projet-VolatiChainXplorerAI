@@ -145,7 +145,7 @@ PROJET-VOLATICHAINXPLORERAI/
     # Exécuter docker_compose.yaml
         docker-compose up -d
 
-    # Pour stopper l'exécution de docker_compose.yaml
+    # Pour stoper l'exécution de docker_compose.yaml
         docker-compose down -d
 ```
 ## Installations des librairies néccessaires pour les bases de données
