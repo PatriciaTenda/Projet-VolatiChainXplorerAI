@@ -1,8 +1,16 @@
 import pandas as pd
 
+
+import pandas as pd
+
+# Liste des colonnes de dates dans ton fichier
+date_cols = ["timeOpen", "timeClose", "timeHigh", "timeLow", "timestamp"]
+
 df = pd.read_csv(
     "data/raw/csvFile/Bitcoin_14_05_2010_12_06_2025_historical_data_coinmarketcap.csv", 
     sep=";", 
+    parse_dates=date_cols,         # Convertit automatiquement en datetime
+    date_parser=pd.to_datetime,    # Utilise le parser standard (optionnel ici)
     encoding="utf-8-sig",    # pour gérer les caractères BOM
     engine="python"          # pour bien parser les séparateurs personnalisés
     )
@@ -26,20 +34,14 @@ print(df_bitcoin.columns.tolist())
 print(df_bitcoin.head())
 
 """ Nétoyage des données"""
-# Conversion des colonnes  qui on les valeur temps en format datetime
-df_bitcoin["timeOpen"] = pd.to_datetime(df_bitcoin["timeOpen"])
-df_bitcoin["timeClose"] = pd.to_datetime(df_bitcoin["timeClose"])
-df_bitcoin["timeHigh"] = pd.to_datetime(df_bitcoin["timeHigh"])
-df_bitcoin["timeLow"] = pd.to_datetime(df_bitcoin["timeLow"])
-
 # Conversion de la colonne 'OBS_VALUE' en format numeric
-colomnes_numerics = ["timeLow", "open", "high","low","close", "volume", "marketCap"]
+colomnes_numerics = ["open", "high","low","close", "volume", "marketCap"]
 for col in colomnes_numerics:
     df_bitcoin[col] = pd.to_numeric(df_bitcoin[col], errors='coerce')
     
 # Ajout de la date simplifiée (clé logique) 
 df_bitcoin["date_bitcoin"] = df_bitcoin["timeOpen"].dt.date
-
+print(df_bitcoin["date_bitcoin"].dtypes)
 # Tri des données propres
 df_bitcoin = df_bitcoin.dropna().sort_values("date_bitcoin")
 

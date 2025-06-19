@@ -4,12 +4,16 @@ df = pd.read_csv("data/raw/csvFile/bce_unemployment_rate_download.csv")
 print(df.head())
 
 # Récupérer le TITLE
-full_TITLE = df.at[0,"TITLE"]
+full_TITLE = df.at[0,"TITLE_COMPL"]
 print(full_TITLE)
 
 # Tronquer proprement le TITLE
-short_TITLE = full_TITLE.split("-")[1]
+short_TITLE = full_TITLE.split(";")[2]
 print(short_TITLE)
+
+# Récupérer la source proprement du TITLE complete
+TITLE_complet = df.at[0, "TITLE_COMPL"].split(";")[1]
+print(TITLE_complet)
 
 # Colonnes pertinantes pour le dataset
 colomnes_names = ["TIME_PERIOD","OBS_VALUE", "OBS_STATUS", "TIME_FORMAT", "TITLE"]
@@ -20,6 +24,7 @@ print(df_unemployment_rate.head())
 
 # Le TITLE à utiliser dans le dataset réduit 
 df_unemployment_rate["TITLE"] = short_TITLE
+df_unemployment_rate["SOURCE_LABEL"] = TITLE_complet
 df_unemployment_rate= df_unemployment_rate.copy()
 
 """ Nétoyage des données"""

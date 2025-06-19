@@ -7,6 +7,11 @@ print(df.head())
 full_TITLE = df.at[0,"TITLE"]
 print(full_TITLE)
 
+# Récupérer la source proprement du TITLE complete
+TITLE_complet = df.at[0, "TITLE_COMPL"].split(",")[3]
+TITLE_complet= TITLE_complet.replace("- Monetary aggregate M3", "").strip()
+print(TITLE_complet)
+
 # Tronquer proprement le TITLE
 short_TITLE = full_TITLE.split(",")[0]
 short_TITLE_strip = short_TITLE.replace("reported by MFIs", "").strip()
@@ -21,6 +26,10 @@ print(df_Monetary_aggregate_M3.head())
 
 # Le TITLE à utiliser dans le dataset réduit 
 df_Monetary_aggregate_M3["TITLE"] = short_TITLE_strip
+
+# Le label source à utiliser dans le dataset réduit 
+df_Monetary_aggregate_M3["SOURCE_LABEL"] = TITLE_complet
+
 df_Monetary_aggregate_M3= df_Monetary_aggregate_M3.copy()
 
 """ Nétoyage des données"""

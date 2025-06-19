@@ -8,34 +8,58 @@ VolatiChainXplorer AI est un projet d’analyse de la volatilité du Bitcoin bas
      https://www.reddit.com/dev/api/
      https://sdw.ecb.europa.eu/             # Pour les articles
      https://data-api.ecb.europa.eu/        # Pour les indicateurs macroéconomiques
-     https://cryptoast.fr
+     https://cryptoast.fr                   # Pour les articles
 
 
 # Structure du projet 
 ```bash
 PROJET-VOLATICHAINXPLORERAI/
-├── api/                    ← Application FastAPI (routes, schémas, auth)
-├── data/                   ← Données du projet (brutes, nettoyées, exportées)
-│   ├── cleaned/            ← Données nettoyées
-│   ├── exports/            ← Données transformées / résultats
-│   └── raw/                ← Données collectées à la source
-├── database/               ← Connexion, modèles ORM, initialisation BDD
-│   ├── conn_db/            ← Fichiers de connexion à PostgreSQL
-│   ├── schemas/             ← Modèles SQLAlchemy, pydentic
-│   └── init_db.py          ← Script de création des tables
-├── scripts/                ← Traitement et import de données
-│   ├── clean/              ← Nettoyage des données
-│   ├── collect/            ← Récupération (scraping/API)
-│   └── import_db/          ← Insertion des données en BDD
-├── notebooks/              ← Analyses exploratoires (Jupyter)
-├── setup/                  ← Scripts de lancement (Docker Bash)
-│   └── run_postgres.sh     ← Script de lancement PostgreSQL, MongoDB
-├── docker-compose.yaml     ← Orchestration des services Docker
-├── Dockerfile              ← Dockerisation de l’API
-├── .env                    ← Variables d’environnement
-├── .gitignore              ← Fichiers à ignorer par Git
-├── README.md               ← Documentation du projet
-└── requirements.txt        ← Dépendances Python du projet
+├── alembic/                      ← Dossier de migration Alembic
+│   ├── versions/                 ← Scripts de migration auto-générés
+│   ├── env.py                    ← Script de configuration Alembic
+│   ├── script.py.mako           ← Template de génération Alembic
+│   └── README                    ← Explication Alembic (optionnel)
+│
+├── api/                          ← Application FastAPI (routes, auth, endpoints)
+│   └── ...                       ← À structurer (main.py, routes/, etc.)
+│
+├── data/                         ← Données du projet
+│   └── ...                       ← (brutes, nettoyées, exports à créer)
+│
+├── database/                     ← Couche d’abstraction des bases de données
+│   ├── conn_db/                  ← Fichiers de connexion
+│   │   ├── connect_postgresql.py
+│   │   ├── connect_mongodb.py
+│   │   └── __init__.py
+│   │
+│   ├── models/                   ← Modèles SQLAlchemy
+│   │   ├── bitcoin_prices.py
+│   │   ├── macro_indicators.py
+│   │   ├── users.py
+│   │   └── __init__.py
+│   │
+│   └── schemas/                  ← Schémas Pydantic
+│       └── __init__.py
+│
+├── env/                          ← Fichier `.env` contenant les variables d’environnement
+│
+├── notebooks/                    ← Analyses exploratoires et visualisations
+│   └── ...                       ← Fichiers `.ipynb`
+│
+├── scripts/                      ← Scripts de traitement, collecte, injection
+│   ├── collect/                  ← Pour les scripts de scraping/API
+│   ├── clean/                    ← Nettoyage des fichiers
+│   ├── import_db/                ← Insertion PostgreSQL
+│   └── build_views.py            ← Script pour exécuter les vues SQL
+│
+├── setup/                        ← Configuration et automation
+│   └── run_postgres.sh           ← Lancement Docker PostgreSQL / MongoDB
+│
+├── .env                          ← Variables d’environnement (.gitignored)
+├── .gitignore                    ← Ignore les caches, .env, __pycache__, etc.
+├── README.md                     ← Documentation de ton projet
+└── requirements.txt              ← Liste des dépendances Python
+
 
 ```
 # Installations des librairies 
@@ -51,13 +75,11 @@ PROJET-VOLATICHAINXPLORERAI/
     pip freeze > requirements.txt
 ``` 
 ## Installation des librairies utile pour l'extraction des données
-
 ### Librairie utiles
 ```bash
     pip install requests pandas
     pip install dateparser # parser la date
     pip install python-slugify # Pour formater le nom du fichier 
-
 ``` 
 
 ### Extraction via les API coingecko et Yfinance 
@@ -88,8 +110,6 @@ PROJET-VOLATICHAINXPLORERAI/
     
     # Bibliothèque pour interagir sans API de X avec une version de python à partir de 3.11 et descandant
     pip install git+https://github.com/JustAnotherArchivist/snscrape.git
-
-
 ```
 
 ## Configuration des bases de données POSTGRESQL et MONGODB

@@ -11,16 +11,17 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Récuperer les variables
-data_dataset_code = os.getenv("data_dataset_code_Unemployment")
-data_serie_key = os.getenv("data_serie_key_Unemployment")
+dataset_code = os.getenv("dataset_code_Unemployment")
+print(dataset_code)
+serie_key = os.getenv("key_Unemployment")
 # Vérification des variables
-if not data_serie_key or not data_dataset_code:
+if not serie_key or not dataset_code:
     raise ValueError("Les variables d'environnement DATA_SERIE_KEY et DATA_DATASET_CODE sont requises.")
 
 # Paramètres de l'URL
 base = "https://data-api.ecb.europa.eu"
-data_dataset_code = data_dataset_code
-key = data_serie_key.split(".",1)[1]
+data_dataset_code = dataset_code
+key = serie_key.split(".",1)[1]
 
 # Construction de l'URL
 default_url = f"{base}/service/data/{data_dataset_code}/{key}?format=csvdata" # URL direct de la page où on va télécharger le fichier csv

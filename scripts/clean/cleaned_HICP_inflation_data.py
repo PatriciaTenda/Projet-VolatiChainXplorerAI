@@ -7,9 +7,9 @@ print(df.head())
 full_TITLE = df.at[0,"TITLE"]
 print(full_TITLE)
 
-# Tronquer proprement le TITLE
-short_TITLE = full_TITLE.split("-")[1]
-print(short_TITLE)
+# Récupérer la source proprement du TITLE complete
+TITLE_complet = df.at[0, "TITLE_COMPL"].split(",")[2]
+print(TITLE_complet)
 
 # Colonnes pertinantes pour le dataset
 colomnes_names = ["TIME_PERIOD","OBS_VALUE", "OBS_STATUS", "TIME_FORMAT", "TITLE"]
@@ -18,8 +18,8 @@ colomnes_names = ["TIME_PERIOD","OBS_VALUE", "OBS_STATUS", "TIME_FORMAT", "TITLE
 df_HICP_Inflation = df[colomnes_names]
 print(df_HICP_Inflation.head())
 
-# Le TITLE à utiliser dans le dataset réduit 
-df_HICP_Inflation["TITLE"] = short_TITLE
+# Le label source à utiliser dans le dataset réduit 
+df_HICP_Inflation["SOURCE_LABEL"] = TITLE_complet
 df_HICP_Inflation = df_HICP_Inflation.copy()
 
 """ Nétoyage des données"""
