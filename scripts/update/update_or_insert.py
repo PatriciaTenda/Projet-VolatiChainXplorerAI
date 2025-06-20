@@ -57,7 +57,7 @@ def upsert_table(df, model, db : Session, col_conflit : list, col_to_update: lis
 # Fonction pour implémenter la fonction upsert_table() sur les tables 
 def main():
     # Charger le modèle sollicité
-    from database.models.macro_indicators import MacroBceMRO
+    from database.postgres.models.macro_indicators import MacroBceMRO
 
     # Charger le fichier csv 
     df = pd.read_csv("data/cleaned/bce_mro_cleaned.csv", usecols=["TIME_PERIOD","OBS_VALUE", "TIME_FORMAT", "TITLE","SOURCE_LABEL"] , sep = ",", encoding="utf-8")

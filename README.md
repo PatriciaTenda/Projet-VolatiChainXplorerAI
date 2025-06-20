@@ -14,51 +14,96 @@ VolatiChainXplorer AI est un projet d’analyse de la volatilité du Bitcoin bas
 # Structure du projet 
 ```bash
 PROJET-VOLATICHAINXPLORERAI/
-├── alembic/                      ← Dossier de migration Alembic
-│   ├── versions/                 ← Scripts de migration auto-générés
-│   ├── env.py                    ← Script de configuration Alembic
-│   ├── script.py.mako           ← Template de génération Alembic
-│   └── README                    ← Explication Alembic (optionnel)
 │
-├── api/                          ← Application FastAPI (routes, auth, endpoints)
-│   └── ...                       ← À structurer (main.py, routes/, etc.)
+├── alembic/                             ← Fichiers de migration PostgreSQL (générés par Alembic)
 │
-├── data/                         ← Données du projet
-│   └── ...                       ← (brutes, nettoyées, exports à créer)
+├── api/                                 ← Backend FastAPI
+│   ├── auths/                           ← Gestion de l'authentification (routes sécurisées)
+│   ├── routers/                         ← Routes de l’API
+│   └── main.py                          ← Point d’entrée de l’application FastAPI
 │
-├── database/                     ← Couche d’abstraction des bases de données
-│   ├── conn_db/                  ← Fichiers de connexion
-│   │   ├── connect_postgresql.py
+├── data/                                ← Données brutes ou transformées
+│   └── raw/
+│       ├── articles_financiers/         ← Articles scrappés (.json)
+│       └── logs/                        ← Fichiers logs (.log)
+│
+├── database/                            ← Connexion et structure des bases de données
+│   ├── conn_db/                         ← Scripts de connexion
 │   │   ├── connect_mongodb.py
+│   │   ├── connect_postgresql.py
 │   │   └── __init__.py
 │   │
-│   ├── models/                   ← Modèles SQLAlchemy
-│   │   ├── bitcoin_prices.py
-│   │   ├── macro_indicators.py
-│   │   ├── users.py
+│   ├── mongo/                           ← Scripts MongoDB
+│   │   ├── create_collections.py
 │   │   └── __init__.py
 │   │
-│   └── schemas/                  ← Schémas Pydantic
+│   └── postgres/                        ← Définition des tables et schémas PostgreSQL
+│       ├── models/
+│       │   ├── bitcoin_prices.py
+│       │   ├── macro_indicators.py
+│       │   ├── users.py
+│       │   └── __init__.py
+│       └── schemas/
+│           ├── bitcoin_prices.py
+│           ├── macro_indicators.py
+│           ├── users.py
+│           └── __init__.py
+│
+├── env/                                 ← Environnement virtuel local (à ne pas versionner)
+│
+├── notebooks/                           ← Analyses exploratoires & tests en Jupyter Notebook
+│
+├── scripts/                             ← Scripts de traitement, collecte, injection 
+│   ├── collect/                         ← Scripts de collecte (scraping/API)
+│   │   ├── collect_btc_api_coingecko.py
+│   │   ├── collect_btc_api_kraken.py
+│   │   ├── Collect_btc_api_yfinance.py
+│   │   ├── download_bce_HICP_Inflation.py
+│   │   ├── download_bce_mro.py
+│   │   ├── download_Monetary_aggregate_M3.py
+│   │   ├── download_unemployment_rate.py
+│   │   ├── scrape_crypttoast_article_financier.py
+│   │   ├── scrape_twitter_api.py
+│   │   └── scrape_twitter.py
+│
+│   ├── clean/                           ← Préparation et nettoyage des datasets
+│   │   ├── cleaned_Bitcoin_historical_data.py
+│   │   ├── cleaned_HICP_inflation_data.py
+│   │   ├── cleaned_Monetary_aggregate_M3.py
+│   │   ├── cleaned_MRO.py
+│   │   └── cleaned_unemployment_rate_data.py
+│
+│   ├── injection_db_mongo/             ← Insertion dans MongoDB
+│   │   ├── injection_articles_financiers.py
+│   │   ├── injection_logs.py
+│   │   └── __init__.py
+│
+│   ├── injection_db_postgres/          ← Insertion dans PostgreSQL
+│   │   ├── injection_data_aggregate_M3.py
+│   │   ├── injection_data_btcoin.py
+│   │   ├── injection_data_Inflation.py
+│   │   ├── injection_data_mro.py
+│   │   ├── injection_data_unemployment.py
+│   │   └── __init__.py
+│
+│   └── update/                         ← Scripts de mise à jour conditionnelle
+│       ├── update_or_insert.py
 │       └── __init__.py
 │
-├── env/                          ← Fichier `.env` contenant les variables d’environnement
+├── setup/                               ← Configuration & automation
+│   ├── logger_config.py                 ← Logger Python centralisé
+│   ├── run_mongo.sh                     ← Script de lancement Docker MongoDB
+│   ├── run_postgres.sh                  ← Script de lancement Docker PostgreSQL
+│   └── __init__.py
 │
-├── notebooks/                    ← Analyses exploratoires et visualisations
-│   └── ...                       ← Fichiers `.ipynb`
-│
-├── scripts/                      ← Scripts de traitement, collecte, injection
-│   ├── collect/                  ← Pour les scripts de scraping/API
-│   ├── clean/                    ← Nettoyage des fichiers
-│   ├── import_db/                ← Insertion PostgreSQL
-│   └── build_views.py            ← Script pour exécuter les vues SQL
-│
-├── setup/                        ← Configuration et automation
-│   └── run_postgres.sh           ← Lancement Docker PostgreSQL / MongoDB
-│
-├── .env                          ← Variables d’environnement (.gitignored)
-├── .gitignore                    ← Ignore les caches, .env, __pycache__, etc.
-├── README.md                     ← Documentation de ton projet
-└── requirements.txt              ← Liste des dépendances Python
+├── .env                                 ← Variables d’environnement (pas versionner)
+├── .gitignore                           ← Exclusions Git (env/, __pycache__/, .env, etc.)
+├── alembic.ini                          ← Config Alembic
+├── docker-compose.yaml                  ← Déploiement multi-conteneurs Docker
+├── Dockerfile                           ← Image Docker de l'app FastAPI
+├── requirements.txt                     ← Dépendances Python du projet
+└── README.md                            ← Documentation principale du projet
+
 
 
 ```
@@ -113,93 +158,175 @@ PROJET-VOLATICHAINXPLORERAI/
 ```
 
 ## Configuration des bases de données POSTGRESQL et MONGODB
-### Configration de POSTGRESQL dans DOCKER
+### Configuration de POSTGRESQL avec DOCKER
+####  URL de connexion (avec SQLAlchemy)
 ```bash
     # Format de l' URL de connexion à la base de données POSTGRESQL
         URL = "postgresql+psycopg2://POSTGRES_USER:POSTGRES_PASSWORD@POSTGRES_HOST:POSTGRES_PORT/POSTGRES_DB"
-    
-    # Extraction de l'image Docker PostgreSQL
-    # Extraire la dernière image PostgreSQL, ouvrir le terminal ou l'invite de commande et exécutez :
-        docker pull postgres
+```
+#### Étapes pour lancer PostgreSQL avec Docker
+```bash
+    # Télécharger l'image officielle PostgreSQL
+    docker pull postgres
 
-    # Pour le configurer, commencez par créer un volume nommé :
-        docker volume create postgres-data # donner un nom au volume crée
+    # Créer un volume persistant pour PostgreSQL
+    docker volume create postgres_data
 
-    # Inspecter les détails du volume en exécutant la commande suivante :
-        docker volume inspect postgres-data
+    # Inspecter le volume
+    docker volume inspect postgres_data
 
-    # Exécution de PostgreSQL dans un conteneur Docker
-    # Une fois l'image PostgreSQL obtenue, créer et démarrer un conteneur avec une seule commande :
-        docker run --name VolatiChainXplorerAI_postgres \
-                    -e POSTGRES_PASSWORD=$POSTGRES_PASSWORD \
-                    -e POSTGRES_USER=$POSTGRES_USER \
-                    -e POSTGRES_DB=$POSTGRES_DB \
-                    -p 5433:5432 \
-                    -v postgres-data:/var/lib/postgresql/data \
-                    -d postgres 
+    # Lancer PostgreSQL dans un conteneur Docker
+    docker run --name VolatiChainXplorerAI_postgres \
+    -e POSTGRES_USER=$POSTGRES_USER \
+    -e POSTGRES_PASSWORD=$POSTGRES_PASSWORD \
+    -e POSTGRES_DB=$POSTGRES_DB \
+    -p 5433:5432 \
+    -v postgres_data:/var/lib/postgresql/data \
+    -d postgres
 
-    # Rendre le script exécutable une fois 
+```
+####  Gestion du conteneur PostgreSQL
+```bash
+    # Vérifier les conteneurs actifs
+    docker ps
+
+    # Voir tous les conteneurs (même stoppés)
+    docker ps -a
+
+    # Arrêter PostgreSQL
+    docker stop VolatiChainXplorerAI_postgres
+
+    # Redémarrer PostgreSQL
+    docker start VolatiChainXplorerAI_postgres
+
+    # Redémarrage complet (utile après un changement de config)
+    docker restart VolatiChainXplorerAI_postgres
+
+    # Voir les logs
+    docker logs VolatiChainXplorerAI_postgres
+
+    # Suivre les logs en temps réel
+    docker logs -f VolatiChainXplorerAI_postgres
+```
+#### Utilisation avec Docker Compose (au cas où il est utilisé)
+```bash
+    # Lancer les services
+    docker-compose up -d
+
+    # Arrêter les services
+    -compose down
+```
+#### Rendre un script exécutable
+```bash
+   # Rendre le script exécutable une fois 
         chmod +x setup/run_postgres.sh  #  Donne le droit de l’exécuter
 
-    # Puis à chaque lancement
+   # Puis à chaque lancement
        ./database/run_postgres.sh       # Exécute le script s’il est exécutable
- 
-
-    # Vérifier que le conteneur fonctionne avec :
-        docker ps
-        docker ps -a   # pour vérifier les conteneurs, même céux supprimé
-
-    # Pour arrêter un conteneur PostgreSQL en cours d’exécution, exécutez la commande suivante :
-        docker stop postgres-db
-
-    # Pour exécutez la commande suivante lorsque vous devez le redémarrer :
-        docker start postgres-db
-    
-    # Pour redémarrer un conteneur en cours d'exécution, ce qui peut être utile après avoir modifié certaines configurations, exécutez la commande suivante :
-        docker restart postgres-db
-
-    # Exécutez cette commande pour afficher les journaux du conteneur PostgreSQL :
-        docker logs postgres-db
-        docker logs -f postgres-db # suivre les logs en temps réel
-
-    # Exécuter docker_compose.yaml
-        docker-compose up -d
-
-    # Pour stoper l'exécution de docker_compose.yaml
-        docker-compose down -d
 ```
-## Installations des librairies néccessaires pour les bases de données
-### POSTGRESQL - SQLAlchimy
+
+#### Installation des bibliothèques Python
+##### PostgreSQL avec SQLAlchemy et Psycopg2
 ```bash
     # Installation de SQLAlchimy
         pip install SQLAlchemy psycopg2-binary
 ```
-#### Installation de la librairie alembic pour la gestion des versions avec SQLAlchemy
+##### Alembic – Gestion des migrations de schéma
 ```bash
-    # Installation du dossier d'alembic
-        pip install alembic
-    
-    # Initialisation de l'environnement d'alembic (Option choisi pour le projet)
-        alembic init 
-        
-    # ou exécuter cette commande pour une intégration moderne avec les projets qui suivent la norme PEP 518 (nouveau et plus moderne)
-        alembic init --template pyproject alembic
+    # Installer Alembic
+    pip install alembic
 
-    # Pour creer une nouvelle révision, utiliser le script de création d'une migration de la manière suivante :
-       alembic revision --autogenerate -m "create all macro and btc tables"
+    # Initialiser un environnement Alembic (classique)
+    alembic init alembic
 
-        
-    # Pour exécuter une première migration
-        alembic upgrade head
-
-    # Pour exécuter une seconde migration ( Par exemple,  on peut ajouter dans une table déjà créée une nouvelle colonne)
-        alembic revision --autogenerate -m "Added account table" # Au cas où
-
-    # A l'inverse pour downgrade la migration c'est - à - dire retourner au debut de la migration
-        alembic downgrade 
+    # Ou version moderne (recommandée pour pyproject.toml)
+    alembic init --template pyproject alembic 
 ```
+#### Utilisation de Alembic
+```bash
+    # Créer une révision automatique
+    alembic revision --autogenerate -m "create all macro and btc tables"
+
+    # Appliquer la migration
+    alembic upgrade head
+
+    # Ajouter une nouvelle révision (ex : ajout de colonne/table)
+    alembic revision --autogenerate -m "Added account table"
+
+    # Revenir en arrière (downgrade)
+    alembic downgrade -1   # ou downgrade base
+```
+
 ### Schémas des entrées/sorties avec pydantic
 ```bash
     # Installation de la librairie pydantic
         pip install pydantic
+```
+### Configuration de MongoDB avec Docker
+```bash
+    # Format de l'URL de connexion MongoDB
+    # Remplacer les variables par les valeurs de ton fichier .env
+    # Definir un delai d'expiration côté client à l'aide de l' option de connexion timeoutMS
+    URI = "mongodb://MONGO_USER:MONGO_PASSWORD@localhost:MONGO_PORT/MONGO_DB?authSource=admin&serverSelectionTimeoutMS=5000"
+
+    # Extraire la dernière image MongoDB
+    docker pull mongo
+
+    # Créer un volume nommé pour la persistance des données
+    docker volume create mongo_data
+
+    # Vérifier les détails du volume
+    docker volume inspect mongo_data
+
+    # Lancer MongoDB dans un conteneur Docker
+     docker run --name mongo_VolatiChainXplorerAI \
+    -e MONGO_INITDB_ROOT_USERNAME=$MONGO_USER \
+    -e MONGO_INITDB_ROOT_PASSWORD=$MONGO_PASSWORD \
+    -e MONGO_INITDB_DATABASE=$MONGO_DB \
+    -p $MONGO_PORT:27017 \
+    -v mongo_data:/data/db \
+    -d mongo:latest
+
+    # Rendre un script exécutable (une seule fois)
+    chmod +x setup/run_mongo.sh
+
+    # Exécuter le script à chaque lancement
+    ./setup/run_mongo.sh
+```
+####  Vérification et gestion du conteneur MongoDB
+```bash
+    # Vérifier les conteneurs en cours
+    docker ps
+
+    # Voir tous les conteneurs (même stoppés)
+    docker ps -a
+
+    # Arrêter le conteneur
+    docker stop mongo_VolatiChainXplorerAI
+
+    # Démarrer le conteneur
+    docker start mongo_VolatiChainXplorerAI
+
+    # Redémarrer le conteneur
+    docker restart mongo_VolatiChainXplorerAI
+
+    # Voir les logs
+    docker logs mongo_VolatiChainXplorerAI
+
+    # Suivre les logs en temps réel
+    docker logs -f mongo_VolatiChainXplorerAI
+```
+#### Docker Compose (au cas où c'est utilisé)
+```bash
+    # Lancer les services définis dans docker-compose.yml
+    docker-compose up -d
+
+    # Arrêter tous les services
+    docker-compose down
+```
+#### Installation des bibliothèques Python
+##### MONGODB avec pymongo
+```bash
+    # Installation de pymongo
+    pip install pymongo
 ```

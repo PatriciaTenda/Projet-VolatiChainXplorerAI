@@ -23,7 +23,7 @@ services:
   #  Service MongoDB
   mongo:
     image: mongo:6
-    container_name: VolatiChainXplorerAI_mongo
+    container_name: mongo_VolatiChainXplorerAI
     restart: always
     ports:
       - "27017:27017"       #  Port MongoDB par défaut
