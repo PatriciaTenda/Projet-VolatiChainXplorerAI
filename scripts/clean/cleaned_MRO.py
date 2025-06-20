@@ -20,7 +20,13 @@ print(df_MRO.head())
 
 # Le TITLE à utiliser dans le dataset réduit 
 df_MRO["TITLE"] = short_TITLE
+
+# Récupérer la source proprement du TITLE complete
+TITLE_complet = df.at[0, "TITLE_COMPL"].split(",")[1]
+df_MRO["SOURCE_LABEL"] = TITLE_complet
+
 df_MRO = df_MRO.copy()
+
 
 """ Nétoyage des données"""
 # Conversion de la colonne 'TIME_PERIOD' en format datetime
