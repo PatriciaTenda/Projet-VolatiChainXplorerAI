@@ -65,3 +65,18 @@ class MacroBceIndicatorDaily(Base):
     monetary_m3_rate = Column(Float, nullable=True)
     source_label = Column(String(100), nullable=True)
 """
+
+#------- Modèle qui représente la vue MacroIndicatorsDaily----------
+class MacroIndicatorsDaily(Base):
+    """
+    Modèle SQLAlchemy mappé à la vue v_macro_indicators_daily_v1.
+    Ce modèle est en lecture seule.
+    """
+    __tablename__ = "v_macro_indicators_daily_v1"
+    __table_args__ = {'extend_existing': True}
+
+    day = Column(Date, primary_key=True)
+    rate_mro = Column(Float)
+    inflation_rate = Column(Float)
+    unemployment_rate = Column(Float)
+    monetary_m3_rate = Column(Float)

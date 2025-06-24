@@ -9,7 +9,7 @@ Chaque modèle correspond à une table de la base de données et définit les co
 # Charger les bibliothèques nécessaires
 from sqlalchemy.orm import declarative_base
 from database.conn_db.connect_postgresql import Base
-from sqlalchemy import Column, Integer, String, Float, Date, DateTime
+from sqlalchemy import Column, Integer, Float, Date, DateTime
 
 """Créer les modèles de la base de donnée"""
 
