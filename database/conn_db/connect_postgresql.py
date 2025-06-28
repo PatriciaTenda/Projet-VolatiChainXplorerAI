@@ -15,7 +15,9 @@ from setup.logger_config import setup_logger
 logger = setup_logger("connect_postgresql")
 
 # Charger les variables d'environnement
-load_dotenv()
+from pathlib import Path
+env_path = Path(__file__).resolve().parents[2] / ".env"
+load_dotenv(dotenv_path=env_path)
 
 # Récupérer les variables du fichier .env
 POSTGRES_USER=os.getenv("POSTGRES_USER")
@@ -42,17 +44,13 @@ def get_db():
    logger.info("Début de la connexion à la base de données postgresql.")
    db: Session= SessionLocal()
    try:
-      yield db
+        yield db
    except Exception as e:
-      logger.error(f"Erreur de connexion à PostgreSQL :{e}")
-      raise RuntimeError(
-         " Connexion à PostgreSQL échouée ! "
-         "Cause probable : paramètres incorrects (.env), base éteinte ou réseau injoignable. "
-         " Pensez à relancer le conteneur ou vérifier le fichier .env."
-      ) from e
+        logger.error(f"Erreur dans l'utilisation de la session PostgreSQL : {e}")
+        raise  # on relance pour ne pas masquer les exceptions métier
    finally:
-      db.close()
-      logger.info("Connexion PostgreSQL fermée avec succès.")
+        db.close()
+        logger.info("Connexion PostgreSQL fermée avec succès.")
 
 if __name__ == "__main__":
     """Tester la connexion à la base de données"""

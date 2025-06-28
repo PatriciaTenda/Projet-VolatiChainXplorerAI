@@ -1,5 +1,14 @@
 """
-    Ce scrprit pert l'injection des données de cours historique du bitcoin dans la tables t_bitcoin_prices
+    Script : python injection_data_aggregate_M3.py
+    Projet : VolatichainXplorerAI
+    Date : 2025-06-19
+
+    Description :
+        Ce script insère automatiquement toutes les données de taux de variations de la masse monétaire néttoyées
+        depuis des fichiers .csv dans la table "t_macro_bce_monetary_m3".
+
+    Usage :
+        python injection_data_aggregate_M3.py
 """
 # Charger les librairies en nécessaires
 import os, sys

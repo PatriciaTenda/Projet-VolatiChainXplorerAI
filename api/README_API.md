@@ -43,15 +43,16 @@ api/
 - **Pydantic** - Validation des données
 
 # URLs claires et descriptives :
-- /api/v1/bitcoin_prices : Toutes les données de prix Bitcoin.
-- /api/v1/bitcoin_prices/{id} : Une donnée de prix Bitcoin spécifique par ID.
-- /api/v1/macro_indicators : Tous les indicateurs macro.
+- /bitcoin-prices : Prix journaliers du Bitcoin (PostgreSQL)
+- /macro-indicators : Les indicateurs macroéconomiques de la BCE
+- /articles-financiers : Articles économiques (MongoDB)
 
 # Format entrée / sortie des données
 
 ### `POST /auth/login`
 - **Entrée** (formulaire) :
   - `username` : nom d'utilisateur
+  - `email`     : adresse email
   - `password` : mot de passe
 
 - **Sortie** :
@@ -62,31 +63,72 @@ api/
     }
 ```
 
-### GET /btc/prices
+### GET /bitcoin-prices
 Entrée : aucune (authentification requise avec Bearer <token>)
 Sortie :
 ```json
     [
-        {
-            "date": "2025-06-20",
-            "price": 65900.0
-        },
-        {
-            "date": "2025-06-21",
-            "price": 66250.5
-        }   
+         {
+                "id_price_bitcoin": 0,
+                "date_bitcoin": "2025-06-24",
+                "time_open_bitcoin": "2025-06-24T15:14:46.843Z",
+                "time_close_bitcoin": "2025-06-24T15:14:46.843Z",
+                "time_high_bitcoin": "2025-06-24T15:14:46.843Z",
+                "time_low_bitcoin": "2025-06-24T15:14:46.843Z",
+                "open_price_bitcoin": 0,
+                "close_price_bitcoin": 0,
+                "high_price_bitcoin": 0,
+                "low_price_bitcoin": 0,
+                "volume_bitcoin": 0,
+                "market_Cap_bitcoin": 0
+       }
     ]
 ```
-### GET /articles/
+### GET /macro-indicators/inflation
+Entrée : aucune (authentification requise avec Bearer <token>)
+Sortie :
+```json
+[
+  {
+    "id_inflation": 0,
+    "date_inflation": "2025-06-24",
+    "inflation_rate": 0,
+    "time_periode_inflation": "string",
+    "indicator_name_inflation": "string",
+    "source_label_inflation": "string"
+  }
+]
+```
+
+
+### GET /bitcoin-macro-indicators
+Entrée : aucune (authentification requise avec Bearer <token>)
+Sortie :
+```json
+[
+  {
+    "day": "2025-06-24",
+    "close_price_bitcoin": 0,
+    "rate_mro": 0,
+    "inflation_rate": 0,
+    "unemployment_rate": 0,
+    "monetary_m3_rate": 0
+  }
+]
+```
+### GET /articles-financiers
 Entrée : aucune (authentification requise avec Bearer <token>)
 Sortie :
 ```json
     [
         {
-            "title": "Bitcoin atteint un nouveau sommet",
-            "content": "Le Bitcoin a franchi la barre des 70 000 $...",
-            "source": "CryptoNews",
-            "published_at": "2025-06-19"
+          "_id": "string",
+          "Title": "string",
+          "Content": "string",
+          "url": "https://example.com/",
+          "Author": "string",
+          "Date of publication": "2025-06-24T15:15:44.612Z",
+          "scraped_at": "2025-06-24T15:15:44.612Z"
         }
     ]
 ```

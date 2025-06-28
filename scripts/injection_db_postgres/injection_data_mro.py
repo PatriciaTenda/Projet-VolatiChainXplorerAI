@@ -1,5 +1,13 @@
 """
-    Ce scrprit pert l'injection des données de cours historique du bitcoin dans la tables t_bitcoin_prices
+    Script : python injection_data_mro.py
+    Projet : VolatichainXplorerAI
+    Date : 2025-06-19
+
+    Description :
+        Ce script insère automatiquement toutes les données de taux directeur MRO néttoyées
+        depuis des fichiers .csv dans la table "t_macro_bce_mro".
+
+    Usage : python injection_data_mro.py
 """
 # Charger les librairies en nécessaires
 import os, sys

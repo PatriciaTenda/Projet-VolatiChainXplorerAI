@@ -359,6 +359,36 @@ PROJET-VOLATICHAINXPLORERAI/
     # Installation de pymongo
     pip install pymongo
 ```
+## Sauvegarde (Backup) des données stockées dans les bases PostgreSQL et MongoDB 
+###  PostgreSQL 
+```bash
+    # Utilise pg_dump pour exporter la base et on exécute cette ligne de commande dans le terminal 
+    #  Cela crée un fichier SQL qui pourra être restaurer plus tard avec psql
+    pg_dump -U ton_user -d nom_de_la_db > sauvegarde_postgres.sql
+
+    # Pour restaurer la base de donnée :
+        # Si la base est déja existante
+        #Cette commande exécute tous les ordres SQL contenus dans la sauvegarde
+        psql -U ton_user -d nom_de_la_db -f sauvegarde_postgres.sql
+
+        # Si elle n'est pas existante
+        # Créér d'abord une base vide
+        createdb -U ton_user nouvelle_base
+
+        # Puis, restaurer les données
+        psql -U ton_user -d nouvelle_base -f sauvegarde_postgres.sql
+```
+### MongoDB 
+```bash
+    # Utilise pg_dump pour exporter la base et on exécute cette ligne de commande dans le terminal bash
+    mongodump --db nom_de_la_db --out ./backup_mongo/
+
+    # Pour restaurer
+    mongorestore --db nom_de_la_db ./backup_mongo/nom_de_la_db
+
+```
+
+
 # Configuration de l'API
 ## Schémas des entrées/sorties avec pydantic
 ```bash
@@ -375,3 +405,9 @@ PROJET-VOLATICHAINXPLORERAI/
         python -m api.main  
         uvicorn api.main:app --reload
 ```
+## Installation des bibliothèques Python pour le cryptage des passwords
+```bash
+    # Installation de la librairie pour le cryptage des password en vue de la sécurisation de l'authentification sur l'API
+        pip install python-jose[cryptography] passlib[bcrypt] python-multipart
+```
+

@@ -19,6 +19,7 @@ from api.routers.bitcoin_prices_router import router as bitcoin_router
 from api.routers.macro_indicators_router import router as macro_indicators_router
 from api.routers.aggregate_btc_Macro_Indicators_router import router as bitcoin_macro_indicators_router
 from api.routers.articles_financiers_router import router as articles_financiers_router
+from api.routers.auth_router import router 
 
 # Charger l'API
 app = FastAPI(
@@ -43,19 +44,21 @@ app = FastAPI(
     version="1.0.0"
 )
 
+# Inclure les routes
+app.include_router(router)      # Routes d'authentification
 # Page d'accueil de l'API
-@app.get("/", tags=["Welcome Page"])
+@app.get("/", tags=["Home Page"])
 def welcome():
     return{
         # project → Présente le Nom et le version du projet
         "project": "VolatiChainXplorer AI - API v1.0 ",
-        # description → Présente la finalité réelle de l’API
+        # description → Présente la finalité réelle de l'API
         "description": (
             "Bienvenue sur l'API VolatiChainXplorer AI. "
             "Cette interface vous permet d'explorer, d'analyser et de croiser des données économiques macroéconomiques "
             "et des données sur la volatilité du Bitcoin."
         ),
-        # features → Présente ce que l' API propose d’intéressant ou de structurant
+        # features → Présente ce que l' API propose d'intéressant ou de structurant
         "features": [
             " Architecture modulaire (CRUD, routes, schémas Pydantic, gestion d'exceptions)",
             " Validation rigoureuse des données avec Pydantic",

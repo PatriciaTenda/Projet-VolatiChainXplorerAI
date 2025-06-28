@@ -19,7 +19,7 @@ logger = setup_logger(name_file)
 
 # Création du routeur pour les endpoints liés aux articles financiers
 router = APIRouter(
-    prefix="/articles-financiers",  # Préfixe pour toutes les routes de ce routeur
+    prefix="/api/v1/articles-financiers",  # Préfixe pour toutes les routes de ce routeur
     tags=["Financial articles"]  # Étiquette utilisée pour la documentation Swagger
 )
 
