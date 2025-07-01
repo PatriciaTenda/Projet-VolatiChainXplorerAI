@@ -15,7 +15,9 @@ from setup.logger_config import setup_logger
 logger = setup_logger("connect_postgresql")
 
 # Charger les variables d'environnement
-load_dotenv()
+from pathlib import Path
+env_path = Path(__file__).resolve().parents[2] / ".env"
+load_dotenv(dotenv_path=env_path)
 
 # Récupérer les variables du fichier .env
 POSTGRES_USER=os.getenv("POSTGRES_USER")
@@ -37,24 +39,32 @@ Base = declarative_base()
 SessionLocal= sessionmaker(bind=engine, autoflush=False, autocommit=False)
 
 # Mettre en place une foction permettant de gérer la session
-@contextmanager
+#@contextmanager
 def get_db():
    logger.info("Début de la connexion à la base de données postgresql.")
    db: Session= SessionLocal()
    try:
-    yield db
+        yield db
    except Exception as e:
-      logger.error(f"Erreur de connexion à PostgreSQL :{e}")
-      raise RuntimeError(
-         " Connexion à PostgreSQL échouée ! "
-         "Cause probable : paramètres incorrects (.env), base éteinte ou réseau injoignable. "
-         " Pensez à relancer le conteneur ou vérifier le fichier .env."
-      ) from e
+        logger.error(f"Erreur dans l'utilisation de la session PostgreSQL : {e}")
+        raise  # on relance pour ne pas masquer les exceptions métier
    finally:
-      db.close()
-      logger.info("Connexion PostgreSQL fermée avec succès.")
+        db.close()
+        logger.info("Connexion PostgreSQL fermée avec succès.")
 
 if __name__ == "__main__":
-    with get_db() as session:
-       session.execute(text("SELECT 1"))
-       print("Connexion réussie!")
+    """Tester la connexion à la base de données"""
+      # Obtenir manuellement la session à partir du générateur
+    db_gen = get_db()  # get_db() est un générateur maintenant
+    session = next(db_gen)  # on "entre" dans le yield
+
+    try:
+        session.execute(text("SELECT 1"))
+        print("Connexion réussie!")
+    finally:
+        # on "ferme" la session comme FastAPI le ferait après le yield
+        try:
+            next(db_gen)
+        except StopIteration:
+            pass
+#print((type(db_gen)))

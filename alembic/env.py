@@ -5,9 +5,9 @@ from sqlalchemy import pool
 
 from alembic import context
 from database.conn_db.connect_postgresql import Base
-from database.models.users import Users
-from database.models.bitcoin_prices import BitcoinPrices
-from database.models.macro_indicators import MacroBceInflation, MacroBceMonetaryM3, MacroBceMRO, MacroBcetauxChomage
+from database.postgres.models.users import Users
+from database.postgres.models.bitcoin_prices import BitcoinPrices
+from database.postgres.models.macro_indicators import MacroBceInflation, MacroBceMonetaryM3, MacroBceMRO, MacroBcetauxChomage
 from dotenv import load_dotenv
 import os
 

@@ -1,0 +1,11 @@
+{
+  "python.defaultInterpreterPath": "env\\Scripts\\python.exe",
+  "python.terminal.activateEnvironment": true,
+  "python.analysis.autoSearchPaths": true,
+  "python.analysis.useLibraryCodeForTypes": true,
+  "python.analysis.extraPaths": [
+    "./database",
+    "./api",
+    "./"
+  ]
+}

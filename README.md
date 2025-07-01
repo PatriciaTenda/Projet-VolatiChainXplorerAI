@@ -25,8 +25,9 @@ PROJET-VOLATICHAINXPLORERAI/
 ├── data/                                ← Données brutes ou transformées
 │   └── raw/
 │       ├── articles_financiers/         ← Articles scrappés (.json)
-│       └── logs/                        ← Fichiers logs (.log)
-│
+│       |── logs/                        ← Fichiers logs (.log)
+│       |── csvFile/                     ← Fichiers csv (.csv)
+│            
 ├── database/                            ← Connexion et structure des bases de données
 │   ├── conn_db/                         ← Scripts de connexion
 │   │   ├── connect_mongodb.py
@@ -49,7 +50,7 @@ PROJET-VOLATICHAINXPLORERAI/
 │           ├── users.py
 │           └── __init__.py
 │
-├── env/                                 ← Environnement virtuel local (à ne pas versionner)
+├── env/                                 ← Environnement virtuel local (non versionner)
 │
 ├── notebooks/                           ← Analyses exploratoires & tests en Jupyter Notebook
 │
@@ -104,10 +105,45 @@ PROJET-VOLATICHAINXPLORERAI/
 ├── requirements.txt                     ← Dépendances Python du projet
 └── README.md                            ← Documentation principale du projet
 
-
-
 ```
-# Installations des librairies 
+# Installations des librairies
+##  Librairies Python utilisées
+
+- **Python 3.12** : Version recommandée pour garantir la compatibilité avec les bibliothèques utilisées.
+
+### Utilitaires
+- `requests` : Requêtes HTTP pour récupérer des données depuis des APIs.
+- `pandas` : Manipulation et analyse de données tabulaires.
+- `dateparser` : Parsing intelligent des dates en différents formats.
+- `python-slugify` : Génère des noms de fichiers "propres" (slugs) à partir de chaînes de caractères.
+
+### Extraction de données financières
+- `pycoingecko` : Accès facile à l’API publique CoinGecko.
+- `yfinance` : Téléchargement des données boursières (Yahoo Finance).
+
+### Scraping web et réseaux sociaux
+- `lxml` : Parser HTML/XML performant (utilisé avec BeautifulSoup).
+- `beautifulsoup4` : Librairie de web scraping pour extraire le contenu HTML.
+- `html5lib` : Parser HTML alternatif compatible avec BeautifulSoup.
+- `tweepy` : Client officiel de l’API Twitter/X.
+- `snscrape` : Scraping de Twitter/X sans API (pratique sans authentification).
+
+### PostgreSQL & ORM
+- `SQLAlchemy` : ORM pour interagir avec une base PostgreSQL en Python.
+- `psycopg2-binary` : Driver PostgreSQL utilisé par SQLAlchemy.
+- `alembic` : Gestionnaire de migration de base de données (avec SQLAlchemy).
+
+### MongoDB
+- `pymongo` : Driver officiel pour se connecter et manipuler des bases MongoDB en Python.
+
+### API REST avec FastAPI
+- `fastapi` : Framework web moderne et rapide pour créer l’API du projet.
+- `uvicorn` : Serveur ASGI ultra-performant pour exécuter l’API FastAPI.
+- `pydantic` : Validation de données et création de schémas de requêtes/réponses pour FastAPI.
+
+### Déploiement (via Docker)
+- `docker`, `docker-compose` *(hors Python)* : Lancement des bases PostgreSQL et MongoDB dans des conteneurs.
+
 ## Configuration de l'environemment du projet
 ```bash
     # Mise en place de l' environnement python 
@@ -256,12 +292,6 @@ PROJET-VOLATICHAINXPLORERAI/
     # Revenir en arrière (downgrade)
     alembic downgrade -1   # ou downgrade base
 ```
-
-### Schémas des entrées/sorties avec pydantic
-```bash
-    # Installation de la librairie pydantic
-        pip install pydantic
-```
 ### Configuration de MongoDB avec Docker
 ```bash
     # Format de l'URL de connexion MongoDB
@@ -324,9 +354,60 @@ PROJET-VOLATICHAINXPLORERAI/
     # Arrêter tous les services
     docker-compose down
 ```
-#### Installation des bibliothèques Python
-##### MONGODB avec pymongo
+#### Installation des bibliothèques Python interagir avec MONGODB 
 ```bash
     # Installation de pymongo
     pip install pymongo
 ```
+## Sauvegarde (Backup) des données stockées dans les bases PostgreSQL et MongoDB 
+###  PostgreSQL 
+```bash
+    # Utilise pg_dump pour exporter la base et on exécute cette ligne de commande dans le terminal 
+    #  Cela crée un fichier SQL qui pourra être restaurer plus tard avec psql
+    pg_dump -U ton_user -d nom_de_la_db > sauvegarde_postgres.sql
+
+    # Pour restaurer la base de donnée :
+        # Si la base est déja existante
+        #Cette commande exécute tous les ordres SQL contenus dans la sauvegarde
+        psql -U ton_user -d nom_de_la_db -f sauvegarde_postgres.sql
+
+        # Si elle n'est pas existante
+        # Créér d'abord une base vide
+        createdb -U ton_user nouvelle_base
+
+        # Puis, restaurer les données
+        psql -U ton_user -d nouvelle_base -f sauvegarde_postgres.sql
+```
+### MongoDB 
+```bash
+    # Utilise pg_dump pour exporter la base et on exécute cette ligne de commande dans le terminal bash
+    mongodump --db nom_de_la_db --out ./backup_mongo/
+
+    # Pour restaurer
+    mongorestore --db nom_de_la_db ./backup_mongo/nom_de_la_db
+
+```
+
+
+# Configuration de l'API
+## Schémas des entrées/sorties avec pydantic
+```bash
+    # Installation de la librairie pydantic
+        pip install pydantic
+```
+## Installation des bibliothèques Python pour l'API
+```bash
+    # Installation de la librairie fastAPI
+        pip install "fastapi[standard]"
+        pip install "uvicorn[standard]"
+
+    # Pour lancer FastAPI
+        python -m api.main  
+        uvicorn api.main:app --reload
+```
+## Installation des bibliothèques Python pour le cryptage des passwords
+```bash
+    # Installation de la librairie pour le cryptage des password en vue de la sécurisation de l'authentification sur l'API
+        pip install python-jose[cryptography] passlib[bcrypt] python-multipart
+```
+

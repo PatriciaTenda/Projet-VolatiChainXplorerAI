@@ -1,11 +1,32 @@
 """
-Ce module définit les modèles de données SQLAlchemy pour la base de données VolatiChainXplorerAI_pg.
-Il inclut les tables suivantes :
-- t_users : stocke les informations des utilisateurs de l'API (identifiant, nom, email, mot de passe).
-- t_bitcoin_prices : enregistre l'historique des prix du Bitcoin (date, prix d'ouverture et de clôture, variation en pourcentage, volatilité, volume, capitalisation de marché).
-Chaque modèle correspond à une table de la base de données et définit les colonnes et leurs types associés.
+Modèles ORM pour les indicateurs macro-économiques de la BCE
+===========================================================
 
+Ce module déclare les classes SQLAlchemy mappées sur la base de données **VolatiChainXplorerAI_pg**.
+
+Tables gérées
+-------------
+* **t_macro_bce_mro** - Taux des opérations principales de refinancement (Main Refinancing Operations).
+* **t_macro_bce_inflation** - Taux d'inflation annuel harmonisé (HICP).
+* **t_macro_bce_unemployment** - Taux de chômage harmonisé de la zone euro.
+* **t_macro_bce_monetary_m3** - Croissance annuelle de l'agrégat monétaire M3.
+
+Vue en lecture seule
+--------------------
+* **v_macro_indicators_daily_v1** - Vue agrégée réunissant pour chaque jour
+  les quatre indicateurs ci-dessus (modèle :class:`MacroIndicatorsDaily`, *read-only*).
+
+Chaque classe :
+
+* hérite de :class:`Base` (importée depuis *database.conn_db.connect_postgresql*),
+* correspond nom-pour-nom à la table ou à la vue SQL,
+* définit explicitement toutes les colonnes, leurs types et contraintes
+  (clé primaire, unicité, nullabilité, autoincrément).
+
+Ces modèles servent de couche d-accès aux données pour les analyses
+macro ↔ cryptomonnaies réalisées par **VolatiChainXplorerAI**.
 """
+
 # Charger les bibliothèques nécessaires
 from sqlalchemy.orm import declarative_base
 from database.conn_db.connect_postgresql import Base
@@ -65,3 +86,18 @@ class MacroBceIndicatorDaily(Base):
     monetary_m3_rate = Column(Float, nullable=True)
     source_label = Column(String(100), nullable=True)
 """
+
+#------- Modèle qui représente la vue MacroIndicatorsDaily----------
+class MacroIndicatorsDaily(Base):
+    """
+    Modèle SQLAlchemy mappé à la vue v_macro_indicators_daily_v1.
+    Ce modèle est en lecture seule.
+    """
+    __tablename__ = "v_macro_indicators_daily_v1"
+    __table_args__ = {'extend_existing': True}
+
+    day = Column(Date, primary_key=True)
+    rate_mro = Column(Float)
+    inflation_rate = Column(Float)
+    unemployment_rate = Column(Float)
+    monetary_m3_rate = Column(Float)
