@@ -3,6 +3,7 @@ import os, sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
 from sqlalchemy.orm import Session
+from database.conn_db.connect_postgresql import SessionLocal
 from database.postgres.models.users import Users
 from api.schemas.users import UserCreate, UserLogin, UserResponse
 from api.schemas.auth import Token
@@ -129,7 +130,7 @@ class AuthService:
         )
 
     @staticmethod
-    def get_current_user(db: Session, token: str) -> Users:
+    def get_current_user(token: str) -> Users:
         """
         Récupère les informations de l'utilisateur à partir du token JWT.
 
@@ -143,8 +144,10 @@ class AuthService:
         Raises:
             ValidationError: si le token est invalide ou expiré, ou si l'utilisateur n'existe pas.
         """
-        logger.info("Décodage du token pour récupérer l'utilisateur courant")
+        # Connexion à la base de données
+        db: Session=SessionLocal()
 
+        logger.info("Décodage du token pour récupérer l'utilisateur courant")
         # Décodage du token
         payload = JWTHandler.decode_token(token)
         if not payload:

@@ -2,7 +2,7 @@
 import os, sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),"..", "..")))
  
-from pydantic import BaseModel,Field
+from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime, date
 

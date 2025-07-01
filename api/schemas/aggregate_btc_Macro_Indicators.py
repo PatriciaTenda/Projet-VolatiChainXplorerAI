@@ -26,5 +26,5 @@ class BitcoinMacroIndicatorsResponse(BaseModel):
     monetary_m3_rate: Optional[float]
 
     class Config:
-        from_attribute = True   # Permet à Pydantic de lire les données directement à partir d'un objet ORM 
+        from_attributes = True   # Permet à Pydantic de lire les données directement à partir d'un objet ORM 
                                 # afin qu'on ait pas besoin de tout convertir à la main(dict ou autre)

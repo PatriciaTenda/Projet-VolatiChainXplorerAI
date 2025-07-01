@@ -23,8 +23,9 @@ router = APIRouter(
 
 @router.delete("/", status_code=204)
 def delete_account(
-    current_user: Users= Depends(AuthService.get_current_user()),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: Users= Depends(AuthService.get_current_user)
+    
 ):
     user = db.query(Users).filter(Users.id_user == current_user.id_user).first()
     if not user:
