@@ -20,6 +20,8 @@ from api.routers.macro_indicators_router import router as macro_indicators_route
 from api.routers.aggregate_btc_Macro_Indicators_router import router as bitcoin_macro_indicators_router
 from api.routers.articles_financiers_router import router as articles_financiers_router
 from api.routers.auth_router import router 
+from api.routers.correlated_btc_rates_articlesFi_router import router as correlated_btc_rates_articlesFi_router
+from api.routers.delete_user_account_router import router as deleted_user_router
 
 # Charger l'API
 app = FastAPI(
@@ -37,9 +39,12 @@ app = FastAPI(
         "-  Restitution des données **PostgreSQL** et **MongoDB**\n"
         "-  Prêt pour intégration dans des dashboards ou outils d'analyse IA\n\n"
         "**Aperçu rapide des routes principales :**\n"
-        "-  `/bitcoin-prices` : Prix journaliers du Bitcoin (PostgreSQL)\n"
-        "-  `/macro-indicators` : Les indicateurs macroéconomiques de la BCE\n"
-        "-  `/articles-financiers` : Articles économiques (MongoDB)"
+        "-  `/api/v1/bitcoin-prices` : Prix journaliers du Bitcoin (PostgreSQL)\n"
+        "-  `/api/v1/macro-indicators` : Les indicateurs macroéconomiques de la BCE\n"
+        "-  `/api/v1/articles-financiers` : Articles économiques (MongoDB)\n"
+        "-  `/api/v1/correlated-btc-rates-articlesFi` : Données croisées entre les cours du Bitcoin, les indicateurs macroéconomiques et les articles financiers\n"
+        "-  `/api/v1/auth` : Authentification et gestion des utilisateurs\n"
+        "-  `/api/v1/delete-user-account` : Suppression du compte utilisateur\n"
     ),
     version="1.0.0"
 )
@@ -68,9 +73,12 @@ def welcome():
         ],
         # routes de l'API → Pour guider rapidement un utilisateur qui teste depuis Swagger
         "routes_API_VolatiChainXplorerAI": {
-            "/bitcoin-prices": "Prix journaliers du Bitcoin (PostgreSQL)",
-            "/macro-indicators/inflation": "Taux d'inflation de la BCE",
-            "/articles-financiers/articles": "Articles économiques et IA (MongoDB)",
+            "/api/v1/correlated-btc-rates-articlesFi": "Données croisées entre les cours du Bitcoin, les indicateurs macroéconomiques et les articles financiers",
+            "/api/v1/auth": "Authentification et gestion des utilisateurs",
+            "/api/v1/delete-user-account": "Suppression du compte utilisateur",
+            "/api/v1//bitcoin-prices": "Prix journaliers du Bitcoin (PostgreSQL)",
+            "/api/v1/macro-indicator": "Indicateurs macroéconomiques de la BCE",
+            "/api/v1/articles-financiers": "Articles économiques et financiers relatifs au bitcoinet sa volatilité (MongoDB)",
         }
     }
 # Inclure les routeurs
@@ -86,6 +94,12 @@ app.include_router(bitcoin_macro_indicators_router)
 
 # Les articles financiers
 app.include_router(articles_financiers_router)
+
+# Les données croisées entre les cours du Bitcoin, les indicateurs macroéconomiques et les articles financiers
+app.include_router(correlated_btc_rates_articlesFi_router)
+
+# Supprimer le compte d'un utilisateur
+app.include_router(deleted_user_router)
 
 # Endpoint du controle de l'état de l'API
 @app.get("/health",tags=["API health"])
