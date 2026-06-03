@@ -4,7 +4,7 @@ et les sauvegarder dans un fichier CSV.
 
 """
 # Importation des bibliothèques nécessaires
-import yfinance as yf
+import yfinance as yf  # type: ignore
 
 
 # Télécharger les données du Bitcoin en USD depuis 2013

@@ -33,7 +33,7 @@ def request(method: str = "GET", path: str = "", query: dict | None = None, body
    if len(public_key) > 0:
       if body is None:
          body = {}
-      nonce = body.get("nonce")
+      nonce = str(body.get("nonce") or "")
       if nonce is None:
          nonce = get_nonce()
          body["nonce"] = nonce
@@ -107,8 +107,8 @@ def main():
 
    filename = "data/raw/btc_api_kraken.csv"   # path du fichier csv
    
-   with open(filename, "w", encoding="utf-8") as f:# sauvegarde des données dans un fichier csv
-      df_btc.to_csv(filename, sep=",")
+   with open(filename, "w", encoding="utf-8") as f: # sauvegarde des données dans un fichier csv
+      df_btc.to_csv(f, sep=",")
 
 if __name__ == "__main__":
    main()

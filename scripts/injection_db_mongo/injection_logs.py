@@ -11,7 +11,8 @@ Usage :
     python injection_logs.py
 """
 # Charger les librairies nécessaires
-import os, sys
+import os
+import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
 from pymongo import MongoClient
@@ -28,10 +29,10 @@ logger = setup_logger(name_file)
 load_dotenv()
 
 # Récupérer les variables d'environnement du fichier .env
-MONGO_USER=os.getenv("MONGO_USER")
-MONGO_PASSWORD=os.getenv("MONGO_PASSWORD")
-MONGO_DB=os.getenv("MONGO_DB")
-MONGO_PORT=os.getenv("MONGO_PORT")
+MONGO_USER: str = os.getenv("MONGO_USER") or ""
+MONGO_PASSWORD: str = os.getenv("MONGO_PASSWORD") or ""
+MONGO_DB: str = os.getenv("MONGO_DB") or ""
+MONGO_PORT: str = os.getenv("MONGO_PORT") or ""
 
 # Définition de l' URI de connexion à MongoDB
 # Definir un delai d'expiration côté client à l'aide de l' option de connexion timeoutMS
@@ -47,7 +48,7 @@ def insert_logs(name_db: str, uri: str, name_collection: str):
         return
     
     # Connexion à la base de donnée
-    client = MongoClient(uri)
+    client : MongoClient = MongoClient(uri)
     db = client[name_db]
     # Connexion à la collection souhaitée
     collection=db[name_collection]

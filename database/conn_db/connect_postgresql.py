@@ -1,21 +1,21 @@
 """Script pour établir la connexion à la base de **données** VolatiChainXplorerAI_pg."""
 
 # Charger les bibliothèques nécessaires
-import os, sys
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
-
+import os
+import sys
+from pathlib import Path
 from sqlalchemy import create_engine, text
-from sqlalchemy.orm import declarative_base
-from sqlalchemy.orm import sessionmaker, Session
+from sqlalchemy.orm import declarative_base, sessionmaker, Session
 from dotenv import load_dotenv
-from contextlib import contextmanager
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 from setup.logger_config import setup_logger
 
+
+#----------------- Mise en place des variables d'environnementet du logger -----------------#
 # Mise en place d'un logger pour la connexion à la base de données postgresql
 logger = setup_logger("connect_postgresql")
 
 # Charger les variables d'environnement
-from pathlib import Path
 env_path = Path(__file__).resolve().parents[2] / ".env"
 load_dotenv(dotenv_path=env_path)
 
@@ -26,6 +26,7 @@ POSTGRES_PASSWORD=os.getenv("POSTGRES_PASSWORD")
 POSTGRES_PORT=os.getenv("POSTGRES_PORT")
 POSTGRES_HOST=os.getenv("POSTGRES_HOST")
 
+#----------------- Connexion à la base de données -----------------#
 # Définition de l' URL 
 URL: str = f"postgresql+psycopg2://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}:{POSTGRES_PORT}/{POSTGRES_DB}"
 
@@ -38,10 +39,11 @@ Base = declarative_base()
 # Créer une session 
 SessionLocal= sessionmaker(bind=engine, autoflush=False, autocommit=False)
 
-# Mettre en place une foction permettant de gérer la session
-#@contextmanager
+#------------------- Fonction pour gérer la session -------------------#
+# Mettre en place une fonction permettant de gérer la session
+
 def get_db():
-   logger.info("Début de la connexion à la base de données postgresql.")
+   logger.info("Début de connexion à la base de données postgresql.")
    db: Session= SessionLocal()
    try:
         yield db
@@ -52,19 +54,17 @@ def get_db():
         db.close()
         logger.info("Connexion PostgreSQL fermée avec succès.")
 
+
+#-------------------- Test de connexion -------------------#
 if __name__ == "__main__":
     """Tester la connexion à la base de données"""
-      # Obtenir manuellement la session à partir du générateur
-    db_gen = get_db()  # get_db() est un générateur maintenant
-    session = next(db_gen)  # on "entre" dans le yield
-
+    db = get_db()
     try:
+        session = next(db)
         session.execute(text("SELECT 1"))
         print("Connexion réussie!")
+    except Exception as e:
+        logger.error(f"Erreur lors du test de connexion : {e}")
+        print(f"Erreur : {e}")
     finally:
-        # on "ferme" la session comme FastAPI le ferait après le yield
-        try:
-            next(db_gen)
-        except StopIteration:
-            pass
-#print((type(db_gen)))
+        db.close()

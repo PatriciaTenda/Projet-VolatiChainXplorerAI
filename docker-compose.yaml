@@ -1,12 +1,12 @@
 #  Version de la syntaxe Docker Compose
-version: "3.9"
+# version: "3.9"
 
 #  Définition des services (conteneurs)
 services:
 
   #  Service PostgreSQL
   postgres:
-    image: postgres:latest  #  Version la plus recente et stable de postgresSQL
+    image: postgres:16  #  Version la plus stable de postgresSQL
     container_name: VolatiChainXplorerAI_postgres
     restart: always
     env_file:
@@ -25,6 +25,12 @@ services:
     image: mongo:6
     container_name: mongo_VolatiChainXplorerAI
     restart: always
+    env_file:
+      - .env
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
+      MONGO_INITDB_DATABASE: ${MONGO_DB}
     ports:
       - "27017:27017"       #  Port MongoDB par défaut
     volumes:

@@ -8,7 +8,6 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".
 from sqlalchemy.orm import Session
 from database.postgres.models.bitcoin_prices import BitcoinPrices
 from api.exceptions.bitcoin_prices_exceptions import BitcoinPricesNotFound, ValidationError
-from database.conn_db.connect_postgresql import get_db  # Importe get_db si utilisé ailleurs
 from setup.logger_config import setup_logger
 from datetime import date # Importe date pour le typage des dates
 
@@ -43,10 +42,10 @@ def get_all_bitcoin_prices(db: Session, skip: int = 0, limit: int = 10):
     # Validation des paramètres d'entrée
     if skip < 0:
         logger.error(f"Erreur de validation : 'skip' doit être un nombre positif ou nul, reçu {skip}.")
-        raise ValidationError(detail=f"'skip' doit être un nombre positif ou nul, reçu {skip}.")
+        raise ValidationError(message=f"'skip' doit être un nombre positif ou nul, reçu {skip}.")
     if limit <= 0:
         logger.error(f"Erreur de validation : 'limit' doit être un nombre positif, reçu {limit}.")
-        raise ValidationError(detail=f"'limit' doit être un nombre positif, reçu {limit}.")
+        raise ValidationError(message=f"'limit' doit être un nombre positif, reçu {limit}.")
 
     try:
         # Requête de récupération des cours du bitcoin
@@ -79,14 +78,14 @@ def get_bitcoin_prices_by_date_range(db: Session, start_date: date, end_date : d
 
 
     Retourne :
-        BitcoinPrices | None : L'objet BitcoinPrices est une liste de prix du bitcoin correspondant à la plage dedate, ou None si non trouvé.
+        list[BitcoinPrices] : Liste des objets BitcoinPrices correspondant à la plage de date spécifiée, ou None si aucun prix n'est trouvé.
 
     Lève :
         ValidationError : Si les dates start_date et end_date  ne sont pas des objets dates valides.
     """
     if not isinstance(start_date, date) or not isinstance(end_date, date):
         logger.error(f"Erreur de validation :'start_date et end_date ' doit être des objets date, reçu {type(start_date).__name__}, {type(end_date).__name__}.")
-        raise ValidationError(detail=f"'start_date' ou 'end_date' est invalide.")
+        raise ValidationError(message=f"{'start_date'} ou {'end_date'} est invalide.")
 
     try:
         prices = db.query(BitcoinPrices).filter(BitcoinPrices.date_bitcoin.between(start_date, end_date)).order_by(BitcoinPrices.date_bitcoin.asc()).all()

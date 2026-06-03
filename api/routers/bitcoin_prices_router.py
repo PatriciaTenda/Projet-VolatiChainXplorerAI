@@ -95,7 +95,7 @@ def get_bitcoin_prices_range(
 
     except ValidationError as e:
         logger.error(f"Erreur de validation dans la route /by-date-range : {e}", exc_info=True)
-        raise HTTPException(status_code=422, detail=str(e.detail))
+        raise HTTPException(status_code=422, detail=str(e))
 
     except Exception as e:
         logger.error(f"Erreur inattendue dans la route /by-date-range : {e}", exc_info=True)

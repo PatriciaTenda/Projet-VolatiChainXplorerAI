@@ -7,5 +7,8 @@
     "./database",
     "./api",
     "./"
-  ]
+  ],
+  "python.analysis.diagnosticSeverityOverrides": {
+    "reportMissingTypeStubs": "none"
+  }
 }

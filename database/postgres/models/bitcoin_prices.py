@@ -7,28 +7,41 @@ Chaque modèle correspond à une table de la base de données et définit les co
 
 """
 # Charger les bibliothèques nécessaires
-from sqlalchemy.orm import declarative_base
 from database.conn_db.connect_postgresql import Base
-from sqlalchemy import Column, Integer, Float, Date, DateTime
+from sqlalchemy import Column, Integer, Date, DateTime, String, UniqueConstraint, Numeric
+from sqlalchemy.sql import func
+
 
 """Créer les modèles de la base de donnée"""
 
 # La table des cours historique du bitcoin
 class BitcoinPrices(Base):
-    __tablename__= "t_bitcoin_prices"
+    __tablename__ = "t_bitcoin_prices"
 
-    id_price_bitcoin = Column(Integer, primary_key=True, autoincrement=True)
-    date_bitcoin = Column(Date, unique=True, nullable=False )
-    time_open_bitcoin = Column(DateTime, nullable=True )
-    time_close_bitcoin = Column(DateTime, nullable=True )
-    time_high_bitcoin = Column(DateTime, nullable=True )  # heure à laquelle le prix max a été atteint
-    time_low_bitcoin = Column(DateTime, nullable=True )   # heure du prix le plus bas
+    __table_args__ = (
+        UniqueConstraint(
+            "date",
+            "source",
+            "currency",
+            "granularity",
+            name="uq_t_bitcoin_prices_date_source_currency_granularity",
+        ),
+    )
 
-    open_price_bitcoin = Column(Float, nullable=False)	
-    close_price_bitcoin = Column(Float, nullable=False)
-    high_price_bitcoin = Column(Float, nullable=True)   
-    low_price_bitcoin = Column(Float, nullable=True)   
+    id_price = Column("id", Integer, primary_key=True, autoincrement=True)
 
-    volume_bitcoin = Column(Float, nullable=True)
-    market_Cap_bitcoin = Column(Float, nullable=True)
+    # Colonnes principales demandées
+    date = Column("date", Date, nullable=False)
+    open_price = Column("open", Numeric(18, 8), nullable=False)
+    high_price = Column("high", Numeric(18, 8))
+    low_price = Column("low", Numeric(18, 8))
+    close_price = Column("close", Numeric(18, 8), nullable=False)
+    volume = Column("volume", Numeric(24, 8))
+    market_cap = Column("market_cap", Numeric(28, 8))
+
+    # Nouvelles colonnes
+    source = Column("source", String(50), nullable=False, default="CoinMarketCap")
+    currency = Column("currency", String(10), nullable=False, default="USD")
+    granularity = Column("granularity", String(20), nullable=False, default="1d")
+    collected_at = Column("collected_at", DateTime(timezone=True), nullable=False, server_default=func.now())
 

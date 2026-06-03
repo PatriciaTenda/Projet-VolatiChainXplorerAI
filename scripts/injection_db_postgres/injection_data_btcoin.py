@@ -1,77 +1,97 @@
 """
     Script : python injection_data_bitcoin.py
     Projet : VolatichainXplorerAI
-    Date : 2025-06-19
+    Date : 2026-06-02 (mis à jour)
 
     Description :
-        Ce script insère automatiquement toutes les données de cours historique du bitcoin néttoyées
-        depuis des fichiers .csv dans la table "t_bitcoin_prices".
+        Ce script insère automatiquement toutes les données de cours historique du bitcoin nettoyées
+        depuis bitcoin_historical_cleaned.csv dans la table "t_bitcoin_prices".
+        
+        Structure de la nouvelle table :
+        - date, open, high, low, close, volume, market_cap
+        - source = 'coinmarketcap_manual_csv'
+        - currency = 'EUR'
+        - granularity = '1d'
+        - collected_at (auto-généré)
 
     Usage :
         python injection_data_bitcoin.py
 """
-# Charger les librairies en nécessaires
-import os, sys
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..","..")))
+# Charger les librairies nécessaires
+import os 
+import sys
+from pathlib import Path
 
-#from database.conn_db.connect_postgresql import get_db
-import pandas as pd
-from database.postgres.models.bitcoin_prices import BitcoinPrices
-from database.conn_db.connect_postgresql import SessionLocal
-from sqlalchemy.orm import Session
-from setup.logger_config import setup_logger
+# Ajouter le dossier racine du projet au PYTHONPATH pour permettre les imports absolus
+project_root = Path(__file__).resolve().parent.parent.parent
+sys.path.insert(0, str(project_root))
+
+import pandas as pd  # noqa: E402
+from database.postgres.models.bitcoin_prices import BitcoinPrices  # noqa: E402
+from database.conn_db.connect_postgresql import SessionLocal  # noqa: E402
+from setup.logger_config import setup_logger  # noqa: E402
+
 
 # Récupération du nom du module
-module_name = "scripts\\import_db\\injection_data_btcoin.py".split("\\", 3)
-module_name = module_name[2].split(".",1)[0]
+module_name = os.path.basename(__file__).replace(".py", "")
+
 
 # set le logger du module en cours
 logger = setup_logger(module_name)
 
-# Charger le fichier CSV
-df = pd.read_csv("data/cleaned/bitcoin_historical_cleaned.csv", sep=",", encoding="utf-8")
-logger.debug(f"Extrait du DF :\n{df.head()}")
+# Définir le chemin du fichier CSV de manière dynamique
+csv_path = project_root / "data" / "cleaned" / "bitcoin_historical_cleaned.csv"
 
-# Vérification de l'état du dataframe
+# Charger le fichier CSV
+df = pd.read_csv(csv_path, sep=",", encoding="utf-8")
+logger.debug(f"Extrait du DF :\n{df.head()}")
+logger.info(f"Fichier chargé : {csv_path}")
+
+# Vérification des colonnes attendues
+required_columns = ["date_bitcoin", "open", "high", "low", "close", "volume", "marketCap"]
+missing_columns = [col for col in required_columns if col not in df.columns]
+
+if missing_columns:
+    logger.error(f"Colonnes manquantes dans le CSV : {missing_columns}")
+    sys.exit(1)
+
 if df.empty:
-    logger.warning("CSV vide — terminaison du script")
+    logger.warning("CSV vide — aucune donnée à injecter")
     exit(0)
 
-# Connexion à la base de données
-logger.info("Début de la connexion à la base de données postgresql")
-db: Session = SessionLocal()
+logger.info(f"Nombre de lignes à injecter : {len(df)}")
 
 # Récupérer les données du dataframe
 records = []
 
 for _, row in df.iterrows():
-    # Estancier la classe BitcoinPrices
+    # Instancier la classe BitcoinPrices avec la nouvelle structure
     bitcoinprices = BitcoinPrices(
-        date_bitcoin=row["date_bitcoin"],
-        time_open_bitcoin=row["timeOpen"],
-        time_close_bitcoin=row["timeClose"],
-        time_high_bitcoin=row.get("timeHigh"),
-        time_low_bitcoin=row.get("timeLow"),
-        open_price_bitcoin=row["open"],
-        close_price_bitcoin=row["close"],
-        high_price_bitcoin=row.get("high"),
-        low_price_bitcoin=row.get("low"),
-        volume_bitcoin=row.get("volume"),
-        market_Cap_bitcoin=row.get("marketCap")
+        date = pd.to_datetime(row["date_bitcoin"]).date(),
+        open_price = row["open"],
+        high_price = row.get("high"),
+        low_price = row.get("low"),
+        close_price = row["close"],
+        volume = row.get("volume"),
+        market_cap = row.get("marketCap"),
+        source = "coinmarketcap_manual_csv",
+        currency = "EUR",
+        granularity = "1d"
+        # collected_at sera auto-généré par server_default
     )
     records.append(bitcoinprices)
-    logger.info(f"{len(records)} enregistrements à injecter")
 
-# Connexion à la base de données
+logger.info(f"{len(records)} enregistrements préparés pour injection")
+
+# Injection des données avec context manager
+logger.info("Début d'injection des données à la base de données postgresql")
 try:
-    logger.info("Début d'injection des données à la base de données postgresql")
-    db.bulk_save_objects(records)
-    db.commit()
-    logger.info("Injection terminée avec succès")
+    with SessionLocal() as db:
+        db.add_all(records)
+        db.commit()
+        logger.info(f"Injection réussie : {len(records)} enregistrements insérés dans t_bitcoin_prices")
 except Exception as e:
-    logger.error(f"Erreur enregistrée pendant l'injection : {e}")
-    db.rollback()
-    raise 
+    logger.error(f"Erreur pendant l'injection : {e}")
+    raise
 finally:
-    db.close()
-    logger.info("Fin d'injection et fermeture de la session")
+    logger.info("Fin du processus d'injection")
