@@ -1,17 +1,24 @@
 import pandas as pd
-import pandas as pd
+import sys
+from pathlib import Path
+
+path_root = Path(__file__).resolve().parents[2]
+print(path_root)
+sys.path.insert(0, str(path_root))
+path_csv = path_root / "data" / "raw" / "csvFile" / "Bitcoin_13_06_2025-03_06_2026_historical_data_coinmarketcap.csv"
 
 # Liste des colonnes de dates dans ton fichier
 date_cols = ["timeOpen", "timeClose", "timeHigh", "timeLow", "timestamp"]
 
 df = pd.read_csv(
-    "data/raw/csvFile/Bitcoin_14_05_2010_12_06_2025_historical_data_coinmarketcap.csv", 
-    sep=";", 
-    parse_dates=date_cols,         # Convertit automatiquement en datetime
-    date_parser=pd.to_datetime,    # Utilise le parser standard (optionnel ici)
-    encoding="utf-8-sig",    # pour gérer les caractères BOM
-    engine="python"          # pour bien parser les séparateurs personnalisés
+                path_csv, 
+                sep=";", 
+                parse_dates=date_cols,         # Convertit automatiquement en datetime
+                encoding="utf-8-sig",          # pour gérer les caractères BOM
+                engine="python"                # pour bien parser les séparateurs personnalisés
     )
+
+
  
 print(df.head())
 
@@ -43,6 +50,9 @@ print(df_bitcoin["date_bitcoin"].dtypes)
 # Tri des données propres
 df_bitcoin = df_bitcoin.dropna().sort_values("date_bitcoin")
 
+# 
+df_bitcoin = df_bitcoin[df_bitcoin["date_bitcoin"] >= pd.to_datetime("2025-06-13").date()]
 # Export des données propres
-df_bitcoin.to_csv("data/cleaned/bitcoin_historical_cleaned.csv", index=False)
+# df_bitcoin.to_csv("data/cleaned/bitcoin_historical_cleaned.csv", index=False)
+df_bitcoin.to_csv("data/cleaned/bitcoin_historical_cleaned_13-06-2025_03-06-2026.csv", index=False)
 print("Fichier Bitcoin nettoyé et exporté.")

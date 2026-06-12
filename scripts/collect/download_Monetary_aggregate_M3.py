@@ -26,11 +26,11 @@ key = data_serie_key.split(".",1)[1]
 default_url = f"{base}/service/data/{data_dataset_code}/{key}?format=csvdata" # URL direct de la page où on va télécharger le fichier csv
 print(default_url)
 # Nom du fichier csv
-default_filename = "Data/raw/csvFile/bce_Monetary_aggregate_M3_download.csv"
-
+# default_filename = "Data/raw/csvFile/bce_Monetary_aggregate_M3_download.csv"
+default_filename = "Data/raw/csvFile/bce_Monetary_aggregate_M3_updated.csv"
 os.makedirs(os.path.dirname(default_filename), exist_ok = True)
 
-def download_bce_HICP_Inflation(url, filename):
+def download_bce_Monetary_aggregate_M3(url, filename):
     
     response = requests.get(url)
     if response.status_code == 200:
@@ -41,4 +41,4 @@ def download_bce_HICP_Inflation(url, filename):
         response.raise_for_status() # Remonte une erreur HTTP
 
 if __name__ == "__main__":
-    download_bce_HICP_Inflation(default_url, default_filename)
+    download_bce_Monetary_aggregate_M3(default_url, default_filename)

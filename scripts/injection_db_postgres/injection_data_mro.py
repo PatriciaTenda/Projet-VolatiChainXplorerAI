@@ -2,6 +2,7 @@
     Script : python injection_data_mro.py
     Projet : VolatichainXplorerAI
     Date : 2025-06-19
+    Date de mise à jour : 2026-06-11
 
     Description :
         Ce script insère automatiquement toutes les données de taux directeur MRO néttoyées
@@ -10,40 +11,51 @@
     Usage : python injection_data_mro.py
 """
 # Charger les librairies en nécessaires
-import os, sys
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..","..")))
+import sys
+from pathlib import Path
+
+#  Chemin du projet
+project_root = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(project_root))
 
 #from database.conn_db.connect_postgresql import get_db
-import pandas as pd
-from database.postgres.models.macro_indicators import MacroBceMRO
-from database.conn_db.connect_postgresql import SessionLocal
-from sqlalchemy.orm import Session
-from setup.logger_config import setup_logger
+import pandas as pd # noqa: E402
+from database.postgres.models.macro_indicators import MacroBceMRO # noqa: E402
+from database.conn_db.connect_postgresql import SessionLocal # noqa: E402
+from setup.logger_config import setup_logger # noqa: E402
 
 # Récupération du nom du module
-module_name = "scripts\\import_db\\injection_data_mro.py".split("\\", 3)
-module_name = module_name[2].split(".",1)[0]
+module_path= "scripts / import_db / injection_data_mro.py".split("/", 3)
+module_name = module_path[2].replace(".py", " ").strip()
 
 # set le logger du module en cours
 logger = setup_logger(module_name)
 
-# Charger le fichier CSV
-df = pd.read_csv("data/cleaned/bce_mro_cleaned.csv", sep=",", encoding="utf-8")
 
-# Connexion à la base de données
-logger.info("Début de connexion à la base de données postgresql")
-db: Session = SessionLocal()
+# Chemin du CSV
+csv_path = project_root / "data" / "cleaned" / "bce_mro_cleaned_updated.csv"
+
+# Charger le fichier CSV
+df = pd.read_csv(csv_path, 
+                 sep=",", 
+                 encoding="utf-8",
+                 engine= "python"
+                )
+
+logger.debug(f"Extrait du DF :\n{df.head()}")
+logger.info(f"Fichier chargé : {csv_path}")
 
 # Récupérer les données du dataframe
 records = []
 
 for _, row in df.iterrows():
-    # Estancier la classe BitcoinPrices
+    # Estancier la classe MacroBceMRO avec les données du dataframe
     # mro : Main Refenancing operational
     mro = MacroBceMRO(
-        date_mro=row["TIME_PERIOD"],
+        date_mro=row["date"],
+        time_period_mro=row["TIME_PERIOD"],
         rate_mro=row["OBS_VALUE"],
-        time_periode_mro=row["TIME_FORMAT"],
+        obs_status_mro = row["OBS_STATUS"],
         indicator_name_mro=row.get("TITLE"),
         source_label_mro=row.get("SOURCE_LABEL"),
         
@@ -53,14 +65,13 @@ for _, row in df.iterrows():
 
 # Connexion à la base de données
 try:
-    logger.info("Début d'injection des données à la base de données postgresql")
-    db.bulk_save_objects(records)
-    db.commit()
-    logger.info("Injection terminée avec succès")
+    logger.info("Début d'injection des données du MRO à la base de données postgresql")
+    with SessionLocal() as db:
+        db.add_all(records)
+        db.commit()
+        logger.info("Injection des données du MRO terminée avec succès")
 except Exception as e:
     logger.error(f"Erreur enregistrée pendant l'injection : {e}")
-    db.rollback()
     raise 
 finally:
-    db.close()
-    logger.info("Fin d'injection et fermeture de la session")
+    logger.info("Fin d'injection des données du MRO")

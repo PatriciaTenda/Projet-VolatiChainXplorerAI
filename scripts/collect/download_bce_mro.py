@@ -26,7 +26,8 @@ key = data_serie_key.split(".",1)[1]
 default_url = f"{base}/service/data/{data_dataset_code}/{key}?format=csvdata" # URL direct de la page où on va télécharger le fichier csv
 print(default_url)
 # Nom du fichier csv
-default_filename = "Data/raw/csvFile/bce_mro.csv"
+# default_filename = "Data/raw/csvFile/bce_mro.csv"
+default_filename = "Data/raw/csvFile/bce_mro_updated.csv"
 
 os.makedirs(os.path.dirname(default_filename), exist_ok = True)
 

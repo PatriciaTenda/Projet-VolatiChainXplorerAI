@@ -41,7 +41,7 @@ class BitcoinPrices(Base):
 
     # Nouvelles colonnes
     source = Column("source", String(50), nullable=False, default="CoinMarketCap")
-    currency = Column("currency", String(10), nullable=False, default="USD")
+    currency = Column("currency", String(10), nullable=False, default="EUR")
     granularity = Column("granularity", String(20), nullable=False, default="1d")
     collected_at = Column("collected_at", DateTime(timezone=True), nullable=False, server_default=func.now())
 

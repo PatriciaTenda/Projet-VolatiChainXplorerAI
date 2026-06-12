@@ -40,7 +40,7 @@ module_name = os.path.basename(__file__).replace(".py", "")
 logger = setup_logger(module_name)
 
 # Définir le chemin du fichier CSV de manière dynamique
-csv_path = project_root / "data" / "cleaned" / "bitcoin_historical_cleaned.csv"
+csv_path = project_root / "data" / "cleaned" / "bitcoin_historical_cleaned_updated.csv"
 
 # Charger le fichier CSV
 df = pd.read_csv(csv_path, sep=",", encoding="utf-8")
@@ -48,7 +48,7 @@ logger.debug(f"Extrait du DF :\n{df.head()}")
 logger.info(f"Fichier chargé : {csv_path}")
 
 # Vérification des colonnes attendues
-required_columns = ["date_bitcoin", "open", "high", "low", "close", "volume", "marketCap"]
+required_columns = ["date", "open", "high", "low", "close", "volume", "marketCap"]
 missing_columns = [col for col in required_columns if col not in df.columns]
 
 if missing_columns:
@@ -67,14 +67,14 @@ records = []
 for _, row in df.iterrows():
     # Instancier la classe BitcoinPrices avec la nouvelle structure
     bitcoinprices = BitcoinPrices(
-        date = pd.to_datetime(row["date_bitcoin"]).date(),
+        date = pd.to_datetime(row["date"]).date(),
         open_price = row["open"],
         high_price = row.get("high"),
         low_price = row.get("low"),
         close_price = row["close"],
         volume = row.get("volume"),
         market_cap = row.get("marketCap"),
-        source = "coinmarketcap_manual_csv",
+        source = "coinmarketcap_historical_data",
         currency = "EUR",
         granularity = "1d"
         # collected_at sera auto-généré par server_default
