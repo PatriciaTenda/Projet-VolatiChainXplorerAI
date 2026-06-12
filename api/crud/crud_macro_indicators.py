@@ -170,14 +170,19 @@ def get_macro_indicators_daily(db: Session, start_date: date, end_date: date):
         list[Row]: Résultats agrégés par jour.
 
     Raises:
-        RuntimeError: En cas d’erreur de requête.
+        RuntimeError: En cas d'erreur de requête.
     """
     try:
         query = text("""
-            SELECT *
+            SELECT
+                date AS day,
+                rate_mro,
+                inflation_rate,
+                unemployment_rate,
+                monetary_m3_rate
             FROM v_macro_indicators_daily_v1
-            WHERE day BETWEEN :start_date AND :end_date
-            ORDER BY day ASC
+            WHERE date BETWEEN :start_date AND :end_date
+            ORDER BY date ASC
         """)
         result = db.execute(query, {"start_date": start_date, "end_date": end_date})
         logger.info(f"Indicateurs macro récupérés de {start_date} à {end_date}.")
