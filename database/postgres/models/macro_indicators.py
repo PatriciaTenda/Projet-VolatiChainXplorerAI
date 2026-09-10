@@ -28,8 +28,11 @@ macro ↔ cryptomonnaies réalisées par **VolatiChainXplorerAI**.
 """
 
 # Charger les bibliothèques nécessaires
+from typing import ClassVar
+
+from sqlalchemy import Column, Date, Float, Integer, String
+
 from database.conn_db.connect_postgresql import Base
-from sqlalchemy import Column, Integer, String, Float, Date
 
 """Créer les modèles de la base de donnée"""
 
@@ -96,7 +99,7 @@ class MacroIndicatorsDaily(Base):
     READ-ONLY : Ce modèle ne doit pas être utilisé pour INSERT/UPDATE/DELETE.
     """
     __tablename__ = "v_macro_indicators_daily_v1"
-    __table_args__ = {
+    __table_args__ : ClassVar[dict] = {
         'extend_existing': True,
         'info': {'read_only': True}
     }
