@@ -3,6 +3,7 @@
 # Charger les librairies nécessaires
 import logging
 import os
+
 from dotenv import load_dotenv
 
 # Charger les variables d'environnement

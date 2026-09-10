@@ -1,6 +1,7 @@
-import pandas as pd
 import sys
 from pathlib import Path
+
+import pandas as pd
 
 path_root = Path(__file__).resolve().parents[2]
 print(path_root)
@@ -50,7 +51,7 @@ print(df_bitcoin["date_bitcoin"].dtypes)
 # Tri des données propres
 df_bitcoin = df_bitcoin.dropna().sort_values("date_bitcoin")
 
-# 
+# Filtrage des données à partir de la date spécifiée
 df_bitcoin = df_bitcoin[df_bitcoin["date_bitcoin"] >= pd.to_datetime("2025-06-13").date()]
 # Export des données propres
 # df_bitcoin.to_csv("data/cleaned/bitcoin_historical_cleaned.csv", index=False)

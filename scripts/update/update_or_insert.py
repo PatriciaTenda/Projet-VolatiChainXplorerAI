@@ -2,15 +2,17 @@
 
 # Charger les libraiiries nécessaires
 
-import os, sys
+import os
+import sys
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),"..", "..")))
 
 import pandas as pd
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
+
 from database.conn_db.connect_postgresql import SessionLocal
 from setup.logger_config import setup_logger
-
 
 # Récupération du nom du module
 module_name = os.path.basename(__file__).split(".",1)[0]
