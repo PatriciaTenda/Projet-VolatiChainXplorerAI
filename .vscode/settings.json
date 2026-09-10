@@ -10,5 +10,6 @@
   ],
   "python.analysis.diagnosticSeverityOverrides": {
     "reportMissingTypeStubs": "none"
-  }
+  },
+  "python-envs.defaultEnvManager": "ms-python.python:system"
 }

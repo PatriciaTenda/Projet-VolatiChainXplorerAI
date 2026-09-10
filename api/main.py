@@ -12,20 +12,25 @@
 # Charger les librairies nécessaires
 import os
 import sys
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),"..")))
 from fastapi import FastAPI
-from sqlalchemy import text
-from database.conn_db.connect_postgresql import engine
 from pymongo import MongoClient
-from database.conn_db.connect_mongodb import URI, MONGO_DB
-from api.routers.bitcoin_prices_router import router as bitcoin_router
-from api.routers.macro_indicators_router import router as macro_indicators_router
-from api.routers.aggregate_btc_Macro_Indicators_router import router as bitcoin_macro_indicators_router
-from api.routers.articles_financiers_router import router as articles_financiers_router
-from api.routers.auth_router import router 
-from api.routers.correlated_btc_rates_articlesFi_router import router as correlated_btc_rates_articlesFi_router
-from api.routers.delete_user_account_router import router as deleted_user_router
+from sqlalchemy import text
 
+from api.routers.aggregate_btc_Macro_Indicators_router import (
+    router as bitcoin_macro_indicators_router,
+)
+from api.routers.articles_financiers_router import router as articles_financiers_router
+from api.routers.auth_router import router
+from api.routers.bitcoin_prices_router import router as bitcoin_router
+from api.routers.correlated_btc_rates_articlesFi_router import (
+    router as correlated_btc_rates_articlesFi_router,
+)
+from api.routers.delete_user_account_router import router as deleted_user_router
+from api.routers.macro_indicators_router import router as macro_indicators_router
+from database.conn_db.connect_mongodb import MONGO_DB, URI
+from database.conn_db.connect_postgresql import engine
 
 # Charger l'API
 app = FastAPI(

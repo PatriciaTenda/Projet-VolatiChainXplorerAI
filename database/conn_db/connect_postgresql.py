@@ -4,12 +4,14 @@
 import os
 import sys
 from pathlib import Path
-from sqlalchemy import create_engine, text
-from sqlalchemy.orm import declarative_base, sessionmaker, Session
+
 from dotenv import load_dotenv
+from sqlalchemy import create_engine, text
+from sqlalchemy.exc import OperationalError
+from sqlalchemy.orm import Session, declarative_base, sessionmaker
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 from setup.logger_config import setup_logger
-
 
 #----------------- Mise en place des variables d'environnementet du logger -----------------#
 # Mise en place d'un logger pour la connexion à la base de données postgresql
@@ -63,7 +65,7 @@ if __name__ == "__main__":
         session = next(db)
         session.execute(text("SELECT 1"))
         print("Connexion réussie!")
-    except Exception as e:
+    except OperationalError as e: 
         logger.error(f"Erreur lors du test de connexion : {e}")
         print(f"Erreur : {e}")
     finally:
