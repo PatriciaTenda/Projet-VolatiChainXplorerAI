@@ -22,7 +22,7 @@ def get_all_bitcoin_prices(db: Session, skip: int = 0, limit: int = 10):
 
     Cette requête SQL est équivalente à la logique implémentée :
 
-        SELECT date_bitcoin, open_price_bitcoin, close_price_bitcoin
+        SELECT date, open, close
         FROM t_bitcoin_prices
         ORDER BY date_bitcoin DESC
         LIMIT {limit} OFFSET {skip};
@@ -49,7 +49,7 @@ def get_all_bitcoin_prices(db: Session, skip: int = 0, limit: int = 10):
 
     try:
         # Requête de récupération des cours du bitcoin
-        prices = db.query(BitcoinPrices).order_by(BitcoinPrices.date_bitcoin.desc()).offset(skip).limit(limit).all()
+        prices = db.query(BitcoinPrices).order_by(BitcoinPrices.date.desc()).offset(skip).limit(limit).all()
 
         if not prices:
             logger.warning(f"Aucun prix Bitcoin trouvé pour skip={skip}, limit={limit}.")

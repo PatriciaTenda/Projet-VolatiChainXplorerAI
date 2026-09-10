@@ -1,14 +1,19 @@
 # Charger les librairies nécessaires
-import os, sys
+import os
+import sys
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
+
+from datetime import date
 
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
-from typing import List
-from database.conn_db.connect_postgresql import get_db
+
+from api.crud.crud_aggregate_btc_Macro_Indicators import (
+    get_bitcoin_macro_indicators_range,
+)
 from api.schemas.aggregate_btc_Macro_Indicators import BitcoinMacroIndicatorsResponse
-from api.crud.crud_aggregate_btc_Macro_Indicators import get_bitcoin_macro_indicators_range
-from datetime import date
+from database.conn_db.connect_postgresql import get_db
 from setup.logger_config import setup_logger
 
 # Mise en place d'un logger pour le module de création des collections
@@ -23,7 +28,7 @@ router = APIRouter(
 
 )
 
-@router.get("/", response_model=List[BitcoinMacroIndicatorsResponse])
+@router.get("/", response_model=list[BitcoinMacroIndicatorsResponse])
 def get_bitcoin_macro_indicators_view(
     start_date: date = Query(..., description="Date de début de la plage (YYYY-MM-DD)"),
     end_date: date = Query(..., description="Date de fin de la plage (YYYY-MM-DD)"),
