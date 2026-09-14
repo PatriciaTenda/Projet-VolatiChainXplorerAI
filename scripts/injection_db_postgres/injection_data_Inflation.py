@@ -5,10 +5,12 @@
     :param Date de mise à jour : 2026-09-09
 
     Description :
-        Ce script insère automatiquement toutes les données de taux d'inflation néttoyées
-        depuis des fichiers .csv dans la table "t_macro_bce_inflation".
+    Ce script met à jour la table "t_macro_bce_inflation"
+    à partir du fichier CSV nettoyé.
 
-    Usage : python injection_data_Inflation.py
+    Pour chaque date :
+    - si elle n'existe pas, la ligne est insérée ;
+    - si elle existe, ses valeurs sont mises à jour.
 """  
 # Charger les librairies en nécessaires
 import sys

@@ -1,11 +1,24 @@
+
+"""
+Nettoyage et préparation des données sur l'inflation HICP.
+Ce script charge les données brutes, effectue le nettoyage nécessaire,
+et exporte les données nettoyées vers un fichier CSV.
+"""
 import sys
 from pathlib import Path
 
 import pandas as pd
 
+
 # Chemin du projet
 project_root = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(project_root))
+
+from setup.logger_config import setup_logger
+
+# Récupérer le nom du module
+module_name = Path(__file__).stem
+logger = setup_logger(module_name)
 
 # Chemin du fichier CSV à nettoyer
 csv_path = (
@@ -51,7 +64,7 @@ columns_names = [
     "TITLE"
 ]
 
-# Vérivifier que les colonnes existes
+# Vérifier que les colonnes existes et récupérer les colonnes manquantes
 missing_columns=[
     col for col in columns_names 
     if col not in df.columns
@@ -73,6 +86,7 @@ df_HICP_Inflation["TITLE"] = (
 )
 
 """ Nétoyage des données"""
+logger.info("Début du nettoyage des données sur l'inflation HICP.")
 
 # Nettoyage de la colonne "TIME_PERIOD" : suppression des espaces superflus
 df_HICP_Inflation["TIME_PERIOD"] = (
@@ -114,5 +128,9 @@ df_HICP_Inflation.to_csv(
     index=False,
     encoding="utf-8-sig",
 )
-print("Fichier BCE nettoyé et exporté.")
+logger.info(
+    "Fichier BCE nettoyé et exporté."
+    "Nombre de lignes nettoyées : %s",
+    len(df_HICP_Inflation)
+)
 

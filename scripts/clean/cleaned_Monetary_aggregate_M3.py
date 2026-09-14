@@ -1,79 +1,128 @@
-import pandas as pd
+"""
+Nettoyage et préparation des données sur l'agrégat monétaire M3.
+Ce script charge les données brutes, effectue le nettoyage nécessaire,
+et exporte les données nettoyées vers un fichier CSV.
+"""
 import sys
 from pathlib import Path
 
-# Chemin du projet
+import pandas as pd
+
+# Ajouter le dossier racine du projet au PYTHONPATH pour permettre les imports
 project_root = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(project_root))
 
+from setup.logger_config import setup_logger
 
-# Chemin du CSV
-csv_path = project_root/"data"/"raw"/"csvFile"/"bce_Monetary_aggregate_M3_updated.csv"
+# Récupérer le nom du module
+module_name = Path(__file__).stem
+logger = setup_logger(module_name)
 
-# Chemin du fichier CVSV de sortie pour les données nettoyées
-output_file = project_root /"data"/"cleaned"/"Monetary_aggregate_M3_cleaned_updated.csv"
+# Chemin du fichier dynamique vers le csv 
+csv_path = (
+    project_root
+    / "data"
+    / "raw"
+    / "csvFile"
+    / "bce_monetary_aggregate_m3_updated.csv"
+)
 
-df = pd.read_csv(csv_path,
-                 sep=",",
-                 encoding="utf-8-sig",
-                 engine="python"
-                )
-print(df.head())
+if not csv_path.exists():
+    raise FileNotFoundError(
+        f" Le fichier csv à nettoyer est introuvable: {csv_path}"
+    )
+    
+# Chemin du fichier de sortie pour les données nettoyées
+output_csv_path = (
+    project_root
+    / "data"
+    / "cleaned"
+    / "monetary_aggregate_m3_cleaned_updated.csv"
+)
 
-# Récupérer le TITLE et la source proprement du TITLE complete
-title_compl = str(df.at[0, "TITLE_COMPL"]).split(",")
-parts = [part.strip() for part in title_compl]
-print(parts)
+# Créer le fichier de sortie et vérifier qu'il existe
+output_csv_path.parent.mkdir(parents=True, exist_ok=True)
 
-# Récupérer le TITLE
-zone = parts[0].replace("(changing composition)", " ").strip()
-print(zone)
 
-indicator = parts[3].split("-")[1].strip()
-print(indicator)
+# Charger le fichier csv
+df = pd.read_csv(
+    csv_path,
+    sep=",",
+    encoding="utf-8-sig",
+    engine="python"
+)
 
-used_title = f"{zone} - {indicator}"
-print(used_title)
+print(f" liste de colonnes disponibles: {df.columns.to_list()}")
+print(f" Nombre de lignes brutes: {len(df)}")
 
-# Récupérer la source proprement du TITLE complete
-title_source = "API SDMX BCE"
-print(title_source)
+# Lister les colonnes necessaires pour le dataset
+columns_needed=[
+   "TIME_PERIOD",
+    "OBS_VALUE", 
+    "OBS_STATUS", 
+    "TIME_FORMAT", 
+    "TITLE"
+]
+# Identifier les colonnes manquantes
+missing_columns = [
+    col for col in columns_needed
+    if col not in df.columns
+]
 
-# Colonnes pertinantes pour le dataset
-colomnes_names = ["TIME_PERIOD","OBS_VALUE", "OBS_STATUS", "TIME_FORMAT", "TITLE"]
+# Afficher les colonnes manquantes
+if missing_columns:
+    raise ValueError(f"Les colonnes suivantes sont manquantesv: {missing_columns}")
 
-# Dataset réduit
-df_Monetary_aggregate_M3 = df[colomnes_names]
-df_Monetary_aggregate_M3 = df_Monetary_aggregate_M3.copy()
-print(df_Monetary_aggregate_M3.head())
+# Créer uune copie independante du dataset réduit
+df_m3 = df[columns_needed].copy()
 
-# Le TITLE à utiliser dans le dataset réduit 
-df_Monetary_aggregate_M3["TITLE"] = used_title
+# Récupérer les métadonnées du dataset réduit
+df_m3["TITLE"] = (
+    "Monetary Aggregate M3"
+)
 
-# Le label source à utiliser dans le dataset réduit 
-df_Monetary_aggregate_M3["SOURCE_LABEL"] = title_source
-
+df_m3["SOURCE_LABEL"] = "BCE"
 
 """ Nétoyage des données"""
-# Nettoyage de la colonne "TIME_PERIOD" : suppression des espaces superflus
-df_Monetary_aggregate_M3["TIME_PERIOD"] = df_Monetary_aggregate_M3["TIME_PERIOD"].astype(str).str.strip()
+# Conversion de la colonne "date" en format datetime et nettoyage des espaces
+# le TIME_PERIOD est le format originale BCE
+df_m3["TIME_PERIOD"] = df_m3["TIME_PERIOD"].astype(str).str.strip()
 
-# Conversion de la colonne "date" en format datetime
-df_Monetary_aggregate_M3["date"] = pd.to_datetime(df_Monetary_aggregate_M3["TIME_PERIOD"],
-                                                  errors="coerce"
-                                                  ).dt.date
-print(df_Monetary_aggregate_M3.head())
+# le date est le format vraie date technique pour PostgreSQL
+df_m3["date"] = pd.to_datetime(
+    df_m3["TIME_PERIOD"],
+    errors="coerce"
+).dt.date
 
-# Conversion de la colonne 'OBS_VALUE' en format numeric
-df_Monetary_aggregate_M3['OBS_VALUE'] = pd.to_numeric(df_Monetary_aggregate_M3["OBS_VALUE"], 
-                                                      errors= "coerce"
-                                                      )
-print(df_Monetary_aggregate_M3.head())
+# Conversion de la colonne 'OBS_VALUE' en format numeric : Valeur numérique pour le taux de chômage, avec coercition des erreurs en NaN
+df_m3["OBS_VALUE"] = pd.to_numeric(
+    df_m3["OBS_VALUE"], 
+    errors="coerce"
+)
 
 # Tri + export des données propres
-df_Monetary_aggregate_M3= df_Monetary_aggregate_M3.dropna(subset= ["date", "OBS_VALUE"]).sort_values("date").reset_index(drop=True)
-df_Monetary_aggregate_M3.to_csv(output_file, 
-                                index=False
-                                )
-print("Fichier BCE nettoyé et exporté.")
+df_m3= (
+    df_m3
+    .dropna(subset=["date", "OBS_VALUE"])
+    .drop_duplicates(subset="date", keep="last")
+    .sort_values("date")
+    .reset_index(drop=True)
+)
 
+# controle avant export
+print(f"nombre total de ligne après nettoyage: {len(df_m3)}")
+print(f"Première date : {df_m3['date'].min()}")
+print(f"Dernière date : {df_m3['date'].max()}")
+print(f"Nombre de dates dupliquées :{df_m3.duplicated(subset='date').sum()}")
+
+# Exporter le dataset nettoyé vers un fichier CSV
+df_m3.to_csv(
+    output_csv_path, 
+    index=False,
+    encoding="utf-8-sig"
+)
+logger.info(
+    "Fichier Monetary Aggregate M3 nettoyé et exporté."
+    "Nombre de lignes nettoyées : %s", 
+    len(df_m3)
+)

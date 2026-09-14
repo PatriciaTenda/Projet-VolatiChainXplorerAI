@@ -38,7 +38,7 @@ load_dotenv(dotenv_path=path_env)
 #Chemin indépendent du dossier d'exécution
 output_path = (
     project_root
-    / "Data" 
+    / "data" 
     / "raw" 
     / "csvFile"
     / "bce_HICP_Inflation_updated.csv"
@@ -70,11 +70,11 @@ key = serie_key.split(".",1)[1]
 
 # Construction de l'URL
 # URL direct de la page où on va télécharger le fichier csv
-default_url = (
+url = (
     f"{base}/service/data/{data_dataset_code}/{key}" 
     "?format=csvdata" 
 )
-logger.info(f"URL de téléchargement : {default_url}")
+logger.info(f"URL de téléchargement : {url}")
 
 def download_bce_HICP_Inflation(url: str, filename: Path) -> None:
     """
@@ -96,4 +96,4 @@ def download_bce_HICP_Inflation(url: str, filename: Path) -> None:
         raise
 
 if __name__ == "__main__":
-    download_bce_HICP_Inflation(default_url, output_path)
+    download_bce_HICP_Inflation(url, output_path)

@@ -2,77 +2,123 @@
     Script : python injection_data_unemployment.py
     Projet : VolatichainXplorerAI
     Date : 2025-06-19
-    Date de mise à jour : 2026-06-09
+    Date de mise à jour : 2026-09-11
 
     Description :
-        Ce script insère automatiquement toutes les données de taux de chômage néttoyées
-        depuis des fichiers .csv dans la table "t_macro_bce_unemployment".
-
-    Usage : python injection_data_unemployment.py
+            Ce script met à jour la table "t_macro_bce_unemployment"
+            à partir du fichier CSV nettoyé.
+        
+            Pour chaque date :
+            - si elle n'existe pas, la ligne est insérée ;
+            - si elle existe, ses valeurs sont mises à jour.
 """
 # Charger les librairies en nécessaires
 import sys
 from pathlib import Path
 
-# Définir le chemin du projet et ajouter au PYTHONPATH pour les imports absolus
+#  Chemin du projet
 project_root = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(project_root))
 
-#from database.conn_db.connect_postgresql import get_db
-import pandas as pd # noqa: E402
-from database.postgres.models.macro_indicators import MacroBcetauxChomage # noqa: E402
-from database.conn_db.connect_postgresql import SessionLocal # noqa: E402
-from sqlalchemy.orm import Session # noqa: E402
-from setup.logger_config import setup_logger # noqa: E402
+import pandas as pd
+from sqlalchemy.dialects.postgresql import insert
+from sqlalchemy.exc import SQLAlchemyError
 
-
-# Chemin du fichier CSV de manière dynamique
-csv_path = project_root / "data" / "cleaned"/ "unemployment_rate_cleaned_updated.csv"
+from database.conn_db.connect_postgresql import SessionLocal
+from database.postgres.models.macro_indicators import MacroBcetauxChomage
+from setup.logger_config import setup_logger
 
 # Récupération du nom du module
-list_name : list[str] = "scripts/import_db/injection_data_unemployment.py".split("/", 3)
-module_name = str(list_name[2].split(".",1)[0])
+module_name = Path(__file__).stem
 
 # set le logger du module en cours
 logger = setup_logger(module_name)
 
+# Set du chemin du fichier CSV et verifier son existence
+csv_path = (
+    project_root 
+    / "data" 
+    / "cleaned" 
+    / "unemployment_rate_cleaned_updated.csv"
+)
+if not csv_path.exists():
+    raise FileNotFoundError(
+        f"Le fichier CSV n'existe pas: {csv_path}"
+    )   
 # Charger le fichier CSV
-df = pd.read_csv(csv_path,
+df = pd.read_csv(csv_path, 
                  sep=",", 
                  encoding="utf-8",
-                 engine= "python")
+                 engine= "python"
+                )
 
-# Connexion à la base de données
-logger.info("Début de la connexion à la base de données postgresql")
-db: Session = SessionLocal()
+logger.debug(f"Extrait du DF :\n{df.head()}")
+logger.info(f"Fichier chargé : {csv_path}")
 
-# Récupérer les données du dataframe
-records = []
+# Adapter les noms des colonnes du csv au format attendu par sqlalchemy
+df_unemployment = df.rename(columns={
+    "OBS_VALUE" : "value",
+    "OBS_STATUS": "obs_status",
+    "TIME_PERIOD" : "time_period",
+    "TITLE" : "indicator_name",
+    "SOURCE_LABEL": "source_label"
+})
 
-for _, row in df.iterrows():
-    # Estancier la classe macroBcetauxChomage avec les données du dataframe
-    macroBcetauxChomage = MacroBcetauxChomage(
-        date_unemployment = row["date"],
-        time_period_unemployment = row["TIME_PERIOD"],
-        obs_status_unemployment = row["OBS_STATUS"],
-        unemployment_rate = row["OBS_VALUE"],
-        indicator_name_unemployment = row["TITLE"],
-        source_label_unemployment=row.get("SOURCE_LABEL")
+# Adapter les noms des colonnes  du csv à ceux de la base de données 
+columns_db_unemployment = [
+    "date",
+    "value",
+    "obs_status",
+    "time_period",
+    "indicator_name",
+    "source_label"  
+]
 
-    )  
+df_unemployment = df_unemployment[columns_db_unemployment]
 
-    records.append(macroBcetauxChomage)
-    logger.info(f"{len(records)} enregistrements à injecter")
+# S'assurer que la colonne "date" est au format datetime
+df_unemployment["date"]= pd.to_datetime(
+    df_unemployment["date"],
+    errors="raise"
+).dt.date
 
-# Connexion à la base de données
-try:
-    logger.info("Début d'injection des données à la base de données postgresql")
-    with SessionLocal() as db:
-        db.add_all(records)
-        db.commit()
-        logger.info("Injection des données concernant le taux de chômage terminée avec succès")
-except Exception as e:
-    logger.error(f"Erreur enregistrée pendant l'injection : {e}")
-    raise 
-finally:
-    logger.info("Fin d'injection des données concernant le taux de chômage")
+# convertir les lignes du dataframe en dictionnaires
+records = df_unemployment.to_dict(orient="records")
+
+# Vérifier que les données existent
+if not records:
+    logger.warning("Aucune données de chômage disponible pour l'injection")
+    sys.exit(0)
+logger.info(f"Nombre de lignes à injecter : {len(records)}")
+print(records[0])
+
+# Mettre en place l'instruction INSERT pour l'injection des données de chômage dans PostgreSQL
+insert_query = insert(MacroBcetauxChomage.__table__).values(records) 
+upsert_query = insert_query.on_conflict_do_update(
+    index_elements=["date"],
+    set_={
+          "value": insert_query.excluded.value,
+          "obs_status": insert_query.excluded.obs_status,
+          "time_period": insert_query.excluded.time_period,
+          "indicator_name": insert_query.excluded.indicator_name,
+          "source_label": insert_query.excluded.source_label    
+    }
+)
+
+# Exécuter l'injection dans la base de données
+with SessionLocal() as session:
+    try:
+        logger.info("Début de l'upsert des données de chômage")
+        session.execute(upsert_query)
+        session.commit()
+        logger.info(
+            "Upsert des données de chômage reussie : %s lignes traitées",
+             len(records)
+        )
+    except SQLAlchemyError as error:
+        session.rollback()
+        logger.error(
+            "Erreur lors de l'upsert des données de chômage : %s",
+            error,
+        )
+        raise
