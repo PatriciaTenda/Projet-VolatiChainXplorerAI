@@ -1,7 +1,7 @@
 # Projet-VolatiChainXplorerAI
 VolatiChainXplorer AI est un projet d'analyse de la volatilité du Bitcoin basé sur la collecte de données multi-sources (API, CSV, articles, réseaux sociaux). Les données sont stockées dans PostgreSQL (prix Bitcoin + indicateurs macro-économiques BCE) et MongoDB (articles financiers) et exposées via une API FastAPI pour des analyses sémantiques et prédictives.
 
-**Statut actuel (Dernière mise à jour : 2026-06-05) :**
+**Statut actuel (Dernière mise à jour : 2026-09-10) :**
 - ✅ Base PostgreSQL structurée avec tables Bitcoin et indicateurs macro (MRO, Inflation, Chômage, M3)
 - ✅ Vue unifiée `v_macro_indicators_daily_v1` pour jointures temporelles (daily × monthly)
 - ✅ Données Bitcoin enrichies (2010-2026) avec support multi-sources
