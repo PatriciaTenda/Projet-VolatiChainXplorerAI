@@ -7,10 +7,18 @@ Chaque modèle correspond à une table de la base de données et définit les co
 
 """
 # Charger les bibliothèques nécessaires
-from database.conn_db.connect_postgresql import Base
-from sqlalchemy import Column, Integer, Date, DateTime, String, UniqueConstraint, Numeric
+from sqlalchemy import (
+    Column,
+    Date,
+    DateTime,
+    Integer,
+    Numeric,
+    String,
+    UniqueConstraint,
+)
 from sqlalchemy.sql import func
 
+from database.conn_db.connect_postgresql import Base
 
 """Créer les modèles de la base de donnée"""
 

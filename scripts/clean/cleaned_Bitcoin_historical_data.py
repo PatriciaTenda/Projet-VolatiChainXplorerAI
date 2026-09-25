@@ -1,59 +1,147 @@
+"""
+Script : cleaned_bitcoin_historical_data.py
+Projet : VolatiChainXplorerAI
+Date de mise à jour : 2026-09-15
+
+Description :
+    Nettoyer les données historiques Bitcoin issues de CoinMarketCap
+    et exporter un fichier prêt pour l'injection PostgreSQL.
+"""
 import sys
 from pathlib import Path
 
 import pandas as pd
 
+# Définir le chemin du projet
 path_root = Path(__file__).resolve().parents[2]
-print(path_root)
 sys.path.insert(0, str(path_root))
-path_csv = path_root / "data" / "raw" / "csvFile" / "Bitcoin_13_06_2025-03_06_2026_historical_data_coinmarketcap.csv"
 
-# Liste des colonnes de dates dans ton fichier
-date_cols = ["timeOpen", "timeClose", "timeHigh", "timeLow", "timestamp"]
+from setup.logger_config import setup_logger
 
+name_module = Path(__file__).stem
+logger = setup_logger(name_module)
+
+
+# Définir le chemin vers le fichier csv à nettoyer
+path_csv = (
+    path_root 
+    / "data" 
+    / "raw" 
+    / "csvFile" 
+    / "Bitcoin_11_08_2025-12_09_2026_historical_data_coinmarketcap.csv"
+)
+if  not path_csv.exists():
+    raise FileNotFoundError(
+        "Le fichier csv est introuvable!"
+    )
+
+# Définir le chemin vers le fichier csv nettoyé
+output_csv = (
+    path_root
+    / "data"
+    / "cleaned"
+    / "bitcoin_historical_cleaned_04-06-2026_12-09-2026.csv"
+)
+output_csv.parent.mkdir(parents=True, exist_ok=True)
+
+# chargement du fichier csv brut et création du DataFrame pandas
 df = pd.read_csv(
                 path_csv, 
                 sep=";", 
-                parse_dates=date_cols,         # Convertit automatiquement en datetime
                 encoding="utf-8-sig",          # pour gérer les caractères BOM
                 engine="python"                # pour bien parser les séparateurs personnalisés
-    )
+)
 
+# supprimer les espaces des noms de colonnes du dataset
+df.columns = df.columns.str.strip()
+required_columns = [
+    "timeOpen", 
+    "open", 
+    "high", 
+    "low", 
+    "close", 
+    "volume", 
+    "marketCap"
+]
 
- 
-print(df.head())
+# Vérifier les colonnes manquantes
+missing_col = [
+    col for col in required_columns
+    if col not in df.columns
+]
+if missing_col:
+    logger.error(f"Les colonnes manquantes : {missing_col}")
+    raise ValueError(f"Les colonnes manquantes : {missing_col}")
 
-# Liste des colonnes du dataset
-all_possibles_colomns = df.columns.str.strip() 
-print(all_possibles_colomns)
-
-# Colonnes pertinantes pour le dataset
-col_names = ["timeOpen","timeClose","timeHigh","timeLow","open","high","low","close","volume","marketCap"]
-
-# Vérification des colonnes existantes
-existing_cols = [col for col in col_names if col in df.columns]
-print(f"Colonnes existantes : {existing_cols}")
-
-# Extraction du Dataset réduit
-df_bitcoin = df[existing_cols].copy()
-print(df_bitcoin.columns.tolist())
-print(df_bitcoin.head())
+df_bitcoin = df[required_columns].copy()
 
 """ Nétoyage des données"""
-# Conversion de la colonne 'OBS_VALUE' en format numeric
-colomnes_numerics = ["open", "high","low","close", "volume", "marketCap"]
+
+# garantir que les colonnes sont dans le format numeric
+colomnes_numerics = [
+    "open", 
+    "high",
+    "low",
+    "close", 
+    "volume", 
+    "marketCap"
+]
 for col in colomnes_numerics:
     df_bitcoin[col] = pd.to_numeric(df_bitcoin[col], errors='coerce')
     
 # Ajout de la date simplifiée (clé logique) 
-df_bitcoin["date_bitcoin"] = df_bitcoin["timeOpen"].dt.date
-print(df_bitcoin["date_bitcoin"].dtypes)
-# Tri des données propres
-df_bitcoin = df_bitcoin.dropna().sort_values("date_bitcoin")
+df_bitcoin["date"] = pd.to_datetime(df_bitcoin["timeOpen"]).dt.date
+logger.info("Colonne 'date' ajoutée avec succès.")
+
+# colonnes uilis&es
+columns_used = [
+    "date", 
+    "open", 
+    "high", 
+    "low", 
+    "close", 
+    "volume", 
+    "marketCap"
+]
+# Vérifier les colonnes manquantes
+missing_col = [
+    col for col in columns_used
+    if col not in df_bitcoin.columns
+]
+if missing_col:
+    logger.error(f"Les colonnes manquantes : {missing_col}")
+    raise ValueError(f"Les colonnes manquantes : {missing_col}")
+
+df_updated_bitcoin = df_bitcoin[columns_used].copy()
+
+# nettoyage des données propres
+rows_before_cleaning = len(df_updated_bitcoin)
+df_updated_bitcoin= (
+        df_updated_bitcoin
+        .dropna(subset=["date", *colomnes_numerics])
+        .sort_values("date")
+        .reset_index(drop=True)
+)
+
+logger.info(
+    "Nettoyage terminé : %s de lignes supprimées.",
+    rows_before_cleaning - len(df_updated_bitcoin)
+)
 
 # Filtrage des données à partir de la date spécifiée
-df_bitcoin = df_bitcoin[df_bitcoin["date_bitcoin"] >= pd.to_datetime("2025-06-13").date()]
+start_date = pd.Timestamp("2026-06-04").date()
+df_updated_bitcoin = df_updated_bitcoin[
+    df_updated_bitcoin["date"] >= start_date
+].copy()
+
+logger.info(f"Colonnes du dataset réduit : {df_updated_bitcoin.columns.tolist()}")
+logger.info(f"Aperçu du dataset réduit :\n{df_updated_bitcoin.head()}")
+
 # Export des données propres
-# df_bitcoin.to_csv("data/cleaned/bitcoin_historical_cleaned.csv", index=False)
-df_bitcoin.to_csv("data/cleaned/bitcoin_historical_cleaned_13-06-2025_03-06-2026.csv", index=False)
-print("Fichier Bitcoin nettoyé et exporté.")
+# df_updated_bitcoin.to_csv("data/cleaned/bitcoin_historical_cleaned.csv", index=False)
+df_updated_bitcoin.to_csv(
+    output_csv, 
+    index=False,
+    encoding="utf-8-sig"
+)
+logger.info("Fichier Bitcoin nettoyé et exporté.")
