@@ -18,7 +18,15 @@ from database.conn_db.connect_postgresql import engine  #noqaE402
 from setup.logger_config import setup_logger  #noqaE402
 
 # Chemin vers le repertoire d'exports 
-output_path = project_root / "data" / "exports"/ "datasets" / "btc_macro_dataset.csv"
+output_path = (
+    project_root 
+    / "data" 
+    / "exports"
+    / "datasets" 
+    / "unprocessed"
+    / "btc_macro_dataset.csv"
+)
+output_path.parent.mkdir(parents=True, exist_ok=True)
 
 # Récuperation du nom du module
 name_module = Path(__file__).stem
@@ -45,6 +53,7 @@ join_query = """
         LEFT JOIN v_macro_indicators_daily_v1 m
             ON b.date = m.date
         WHERE b.date >= '2010-07-14'
+            AND b.source = 'coinmarketcap_historical_data'
             AND b.granularity = '1d'
             AND b.currency = 'EUR'
         ORDER BY b.date ASC    
@@ -59,14 +68,50 @@ def load_dataset_from_db(query:str) -> pd.DataFrame:
     logger.info("Début du chargement du dataframe à partir des données de la jointure.")
     try:
         df = pd.read_sql_query(query, con=engine)
-        logger.info(f"Fin du chargement du dataset : {len(df)} lignes et {len(df.columns)} colonnes")
+        if df.empty:
+            raise ValueError("La jointure n'a retourné aucune donnée")
+
+        duplicated_dates = df["date"].duplicated().sum()
+
+        if duplicated_dates:
+            raise ValueError(
+                f"{duplicated_dates} date(s) dupliquée(s) dans le dataset"
+            )
+        # Vérification des valeurs manquantes dans les colonnes macroéconomiques
+        macro_columns = [
+            "rate_mro",
+            "inflation_rate",
+            "unemployment_rate",
+            "monetary_m3_rate"
+        ]
+
+        logger.info(
+            "Valeurs macroéconomiques manquantes :\n%s",
+            df[macro_columns].isna().sum()
+        )
+
+        output_path.parent.mkdir(
+            parents=True,
+            exist_ok=True
+        )
+                
         df.to_csv(output_path,
                   sep=",",
                   encoding="utf-8",                   
-                  index=False)
+                  index=False
+        )
+        logger.info(
+            "Dataset exporté : %s lignes, %s colonnes, du %s au %s",
+            len(df),
+            len(df.columns),
+            df["date"].min(),
+            df["date"].max()
+        )
         return df
-    except Exception as e:
-        logger.error(f"Erreur lors du chargement du dataframe: {e}")
+    except Exception:
+        logger.exception(
+            "Échec de la construction du dataset Bitcoin/macro"
+        )
         raise
         
         

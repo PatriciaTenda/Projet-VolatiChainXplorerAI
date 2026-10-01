@@ -199,3 +199,8 @@ data/*
 data/raw/*
 data/cleaned/*
 data/exports/*
+
+
+# Python cache files
+__pycache__/
+*.pyc
