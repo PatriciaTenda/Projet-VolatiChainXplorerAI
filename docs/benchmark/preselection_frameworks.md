@@ -11,17 +11,22 @@ Framework Python open source permettant d’automatiser plusieurs étapes de la 
 
 **Intérêt pour le projet :** solution particulièrement intéressante à étudier pour une exécution locale, une intégration Python et un environnement reproductible.
 
-### 2. H2O AutoML
+### 2. AutoGluon
+Framework AutoML open source développé en Python, disposant d’un module dédié aux séries temporelles avec `TimeSeriesPredictor`, capable d’entraîner et de comparer automatiquement plusieurs modèles de forecasting.
+
+**Intérêt pour le projet :** solution particulièrement intéressante pour une exécution locale, le forecasting multi-modèles et la comparaison automatique de modèles adaptés aux séries temporelles, avec un intérêt renforcé par son utilisation documentée sur des données Bitcoin.
+
+### 3. H2O AutoML
 Solution AutoML généraliste capable d’entraîner et de comparer automatiquement plusieurs modèles de machine learning.
 
 **Intérêt pour le projet :** permet d’évaluer si une solution AutoML généraliste peut répondre efficacement au besoin de prédiction de volatilité.
 
-### 3. Azure Automated ML
+### 4. Azure Automated ML
 Service AutoML proposé dans l’écosystème Microsoft Azure permettant d’automatiser une partie de la création, de l’entraînement et de l’évaluation des modèles.
 
 **Intérêt pour le projet :** permet d’étudier une solution cloud managée et de la comparer aux solutions locales, notamment sur les aspects automatisation, facilité d’utilisation et coût.
 
-### 4. Vertex AI
+### 5. Vertex AI
 Plateforme d’intelligence artificielle de Google Cloud intégrant des fonctionnalités d’AutoML et de machine learning managé.
 
 **Intérêt pour le projet :** permet d’étudier une deuxième approche cloud afin de comparer les possibilités offertes par les grandes plateformes managées avec les solutions locales et open source.
