@@ -26,5 +26,6 @@ Pour VolatiChainXplorerAI, ces travaux conduisent à ne pas limiter le futur ben
 Étudier les sources officielles de :
 - PyCaret
 - H2O AutoML
+- AutoGluon
 - Azure Automated ML
 - Vertex AI
