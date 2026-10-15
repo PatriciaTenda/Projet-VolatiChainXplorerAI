@@ -204,3 +204,9 @@ data/exports/*
 # Python cache files
 __pycache__/
 *.pyc
+
+# Jupyter Notebook environment for PyCaret
+.venv_pycaret/
+
+# Autogluon environment
+.venv_autogluon/
