@@ -1,4 +1,4 @@
-# Contraintes techniques — VolatiChainXplorerAI
+# Contraintes techniques - VolatiChainXplorerAI
 
 ## Contraintes obligatoires
 
