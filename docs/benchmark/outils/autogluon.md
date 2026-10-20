@@ -1,4 +1,4 @@
-# Étude d'AutoGluon — Time Series et Tabular
+# Étude d'AutoGluon - Time Series et Tabular
 
 ## Positionnement
 
