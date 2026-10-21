@@ -5,11 +5,17 @@ import sys
 # Ajoute le répertoire parent au chemin du système pour les imports relatifs
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
+from datetime import date  # Importe date pour le typage des dates
+
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
+
+from api.exceptions.bitcoin_prices_exceptions import (
+    BitcoinPricesNotFound,
+    ValidationError,
+)
 from database.postgres.models.bitcoin_prices import BitcoinPrices
-from api.exceptions.bitcoin_prices_exceptions import BitcoinPricesNotFound, ValidationError
 from setup.logger_config import setup_logger
-from datetime import date # Importe date pour le typage des dates
 
 # Mise en place d'un logger pour le module
 name_file = os.path.splitext(os.path.basename(__file__))[0]
@@ -39,28 +45,41 @@ def get_all_bitcoin_prices(db: Session, skip: int = 0, limit: int = 10):
         ValidationError : Si 'skip' est négatif ou 'limit' est non positif.
         BitcoinPricesNotFound : Si aucun prix n'est trouvé pour les critères donnés.
     """
-    # Validation des paramètres d'entrée
+    # 1. Vérifier les paramètres
     if skip < 0:
         logger.error(f"Erreur de validation : 'skip' doit être un nombre positif ou nul, reçu {skip}.")
         raise ValidationError(message=f"'skip' doit être un nombre positif ou nul, reçu {skip}.")
+    
     if limit <= 0:
         logger.error(f"Erreur de validation : 'limit' doit être un nombre positif, reçu {limit}.")
         raise ValidationError(message=f"'limit' doit être un nombre positif, reçu {limit}.")
 
+    # 2. Lire la base de données
     try:
         # Requête de récupération des cours du bitcoin
-        prices = db.query(BitcoinPrices).order_by(BitcoinPrices.date.desc()).offset(skip).limit(limit).all()
-
-        if not prices:
-            logger.warning(f"Aucun prix Bitcoin trouvé pour skip={skip}, limit={limit}.")
-            raise BitcoinPricesNotFound(skip=skip, limit=limit)
-        
-        logger.info(f"Récupération de {len(prices)} prix Bitcoin (skip={skip}, limit={limit}).")
-        return prices
-    except Exception as e:
-        logger.error(f"Erreur lors de la récupération des prix Bitcoin : {e}", exc_info=True)
+        prices = (
+            db
+            .query(BitcoinPrices)
+            .order_by(BitcoinPrices.date.desc())
+            .offset(skip)
+            .limit(limit)
+            .all()
+        )
+ 
+    except SQLAlchemyError:
+        logger.exception("Erreur lors de la récupération des prix Bitcoin")
         # Rélancer l'exception ou lever une exception plus générique si nécessaire
         raise
+    
+    # 3. Logger le résultat
+    if not prices:
+        logger.warning(f"Aucun prix Bitcoin trouvé pour skip={skip}, limit={limit}.")
+        raise BitcoinPricesNotFound(skip=skip, limit=limit)
+    
+    logger.info(f"Récupération de {len(prices)} prix Bitcoin (skip={skip}, limit={limit}).")
+    
+    return prices
+
 
 def get_bitcoin_prices_by_date_range(db: Session, start_date: date, end_date : date):
     """
@@ -82,19 +101,32 @@ def get_bitcoin_prices_by_date_range(db: Session, start_date: date, end_date : d
 
     Lève :
         ValidationError : Si les dates start_date et end_date  ne sont pas des objets dates valides.
+        BitcoinPricesNotFound : Si aucun prix Bitcoin n'est trouvé pour la plage de date spécifiée.
     """
+    # 1. Vérifier les paramètres
     if not isinstance(start_date, date) or not isinstance(end_date, date):
         logger.error(f"Erreur de validation :'start_date et end_date ' doit être des objets date, reçu {type(start_date).__name__}, {type(end_date).__name__}.")
         raise ValidationError(message=f"{'start_date'} ou {'end_date'} est invalide.")
 
+    # 2. Lire la base de données
     try:
-        prices = db.query(BitcoinPrices).filter(BitcoinPrices.date_bitcoin.between(start_date, end_date)).order_by(BitcoinPrices.date_bitcoin.asc()).all()
-        if prices:
-            logger.info(f"{len(prices)} prix Bitcoin trouvés du {start_date} au {end_date}.")
-        else:
-            logger.warning(f"Aucun prix Bitcoin trouvés sur la plage de date {start_date} à {end_date}.")
-        return prices
-    except Exception as e:
-        logger.error(f"Erreur lors de la récupération du prix Bitcoin sur la plage de date {start_date} à {end_date}. : {e}", exc_info=True)
-        raise
+        prices = (
+            db
+            .query(BitcoinPrices)
+            .filter(BitcoinPrices.date.between(start_date, end_date))
+            .order_by(BitcoinPrices.date.asc())
+            .all()
+        ) 
+    
+    except SQLAlchemyError:
+        logger.exception("Erreur lors de la récupération du prix Bitcoin sur la plage de date")
+        raise 
 
+    # 3. Logger le résultat
+    if prices:
+        logger.info("%d prix Bitcoin trouvés du %s au %s", len(prices), start_date, end_date)
+    else:
+        logger.warning("Aucun prix Bitcoin trouvé du %s au %s", start_date, end_date)
+        raise BitcoinPricesNotFound(start_date=start_date, end_date=end_date)
+    
+    return prices

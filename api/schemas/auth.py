@@ -1,7 +1,8 @@
 # Charger les librairies nécessaires
 from pydantic import BaseModel
+
 from api.schemas.users import UserResponse
-from typing import Optional
+
 
 class Token(BaseModel):
     """Token JWT"""
@@ -11,6 +12,6 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     """Données contenues dans le token"""
-    id_user: Optional[int] = None
-    email_user: Optional[str] = None
-    role_user: Optional[str] = None
+    id_user: int | None = None
+    email_user: str | None = None
+    role_user: str | None = None

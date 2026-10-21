@@ -1,16 +1,28 @@
 # Charger les librairies nécessaires
-import os, sys
+import os
+import sys
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),"..", "..")))
+
+from datetime import date
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-from database.conn_db.connect_postgresql import get_db  # fonction qui donne une session DB PostgreSQL
-from api.crud.crud_bitcoin_prices import get_all_bitcoin_prices, get_bitcoin_prices_by_date_range # fonction de récupération des prix depuis le CRUD
-from api.schemas.bitcoin_prices import BitcoinPriceResponse # schéma de sortie Pydantic
-from typing import List
+
+from api.crud.crud_bitcoin_prices import (  # fonction de récupération des prix depuis le CRUD
+    get_all_bitcoin_prices,
+    get_bitcoin_prices_by_date_range,
+)
+from api.exceptions.bitcoin_prices_exceptions import (
+    BitcoinPricesNotFound,
+    ValidationError,
+)
+from api.schemas.bitcoin_prices import BitcoinPriceResponse  # schéma de sortie Pydantic
+from database.conn_db.connect_postgresql import (
+    get_db,  # fonction qui donne une session DB PostgreSQL
+)
 from setup.logger_config import setup_logger
-from api.exceptions.bitcoin_prices_exceptions import BitcoinPricesNotFound, ValidationError
-from datetime import date
 
 # Mise en place d'un logger pour le module de création des collections
 name_file =os.path.splitext(os.path.basename(__file__))[0]
@@ -25,10 +37,12 @@ router = APIRouter(
 
 # ----------- Liste des prix du bitcoins avec pagination -------------------------
 
-@router.get("/", response_model=List[BitcoinPriceResponse])
-def read_bitcoin_prices(skip: int = Query(0, ge=0, description="Nombre d'enregistrements à ignorer pour la pagination (par défaut 0)"),     # Nombre de lignes à ignorer (offset) c'est à dire que skip doit être ≥ 0
-                        limit: int = Query(10, gt=0, le=100, description="Nombre maximum d'enregistrements à retourner (entre 1 et 100, par défaut 10)"), # Nombre maximum de résultats à retourner c'est à dire que limit doit être ≤ 100
-                        db: Session = Depends(get_db)   # Injection de la session de base de données
+@router.get("/", response_model=list[BitcoinPriceResponse])
+def read_bitcoin_prices(
+    db: Annotated[Session, Depends(get_db)],  # Injection de la session de base de données
+    skip: Annotated[int, Query(ge=0, description="Nombre d'enregistrements à ignorer pour la pagination (par défaut 0)")]=0,     # Nombre de lignes à ignorer (offset) c'est à dire que skip doit être ≥ 0
+    limit: Annotated[int, Query(gt=0, le=100, description="Nombre maximum d'enregistrements à retourner (entre 1 et 100, par défaut 10)")]=10, # Nombre maximum de résultats à retourner c'est à dire que limit doit être ≤ 100
+    
 ):
 
     """
@@ -60,17 +74,17 @@ def read_bitcoin_prices(skip: int = Query(0, ge=0, description="Nombre d'enregis
             logger.warning(str(e))
             raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
-        logger.error(f"Erreur inattendue dans read_bitcoin_prices : {str(e)}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Erreur serveur inattendue")
+        logger.exception("Erreur inattendue dans read_bitcoin_prices")
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 #---------------------Liste des prix du bitcoin sur une plage de date-----------------------------------
 
-@router.get("/by-date-range", response_model=List[BitcoinPriceResponse])
-def get_bitcoin_prices_range(
-    start_date: date = Query(..., description="Date de début au format YYYY-MM-DD"),
-    end_date: date = Query(..., description="Date de fin au format YYYY-MM-DD"),
-    db: Session = Depends(get_db)
+@router.get("/by-date-range", response_model=list[BitcoinPriceResponse])
+async def get_bitcoin_prices_range(
+    start_date: Annotated[date, Query(..., description="Date de début au format YYYY-MM-DD")],
+    end_date: Annotated[date, Query(..., description="Date de fin au format YYYY-MM-DD")],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """
     Récupère les prix du Bitcoin pour une plage de dates (inclusives).
@@ -94,9 +108,9 @@ def get_bitcoin_prices_range(
         return prices
 
     except ValidationError as e:
-        logger.error(f"Erreur de validation dans la route /by-date-range : {e}", exc_info=True)
-        raise HTTPException(status_code=422, detail=str(e))
+        logger.exception("Erreur de validation dans la route /by-date-range ")
+        raise HTTPException(status_code=422, detail=str(e)) from e
 
     except Exception as e:
-        logger.error(f"Erreur inattendue dans la route /by-date-range : {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Erreur serveur inattendue")
+        logger.exception("Erreur inattendue dans la route /by-date-range ")
+        raise HTTPException(status_code=500, detail=str(e)) from e

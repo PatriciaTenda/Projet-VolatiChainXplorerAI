@@ -1,12 +1,15 @@
 # Charger les librairies nécessaires
-import os, sys
+import os
+import sys
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
 from fastapi import APIRouter, HTTPException
+
 from api.crud.crud_articles_financiers import (
+    collection_articlesFinanciers,
     get_all_articles,
     get_article_by_id,
-    collection_articlesFinanciers,
 )
 from api.schemas.articles_financiers import ArticlesFinanciersResponse
 from setup.logger_config import setup_logger
@@ -42,8 +45,8 @@ def read_all_articles():
         logger.info(f"{len(articles)} article(s) renvoyé(s) via l'API.")
         return articles
     except Exception as e:
-        logger.error(f"Erreur serveur : {e}")
-        raise HTTPException(status_code=500, detail=f"Erreur serveur : {str(e)}")
+        logger.exception("Erreur serveur ")
+        raise HTTPException(status_code=500, detail= str(e)) from e
 
 @router.get("/{article_id}", response_model=ArticlesFinanciersResponse)
 def read_article_by_id(article_id: str):
@@ -75,5 +78,5 @@ def read_article_by_id(article_id: str):
         return article
 
     except Exception as e:
-        logger.error(f"Erreur serveur lors de la récupération de l'article : {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Erreur serveur : {str(e)}")
+        logger.exception("Erreur serveur lors de la récupération de l'article")
+        raise HTTPException(status_code=500, detail=str(e)) from e

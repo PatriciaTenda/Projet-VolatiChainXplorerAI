@@ -1,11 +1,15 @@
-import sys
 import os
+import sys
+
+from fastapi import HTTPException
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
+from sqlalchemy.orm import Session
+
+from api.auths.jwt_handler import JWTHandler
 from database.conn_db.connect_postgresql import SessionLocal
 from database.postgres.models.users import Users
-from sqlalchemy.orm import Session
-from api.auths.jwt_handler import JWTHandler
 from setup.logger_config import setup_logger
 
 # Mise en place d'un logger pour le module
@@ -69,7 +73,7 @@ def create_default_users():
      
         return True
         
-    except Exception as e:
+    except HTTPException as e:
         logger.error(f" Erreur: {e}")
         db.rollback()
         return False

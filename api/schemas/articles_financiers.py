@@ -1,15 +1,17 @@
 # Charger les librairies nécessaires
 # Ajout du chemin de base
-import os, sys
+import os
+import sys
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),"..", "..")))
 
-from typing import Optional
 from datetime import datetime
+
 from bson import ObjectId
-from pydantic import BaseModel, Field, HttpUrl
+from pydantic import BaseModel, ConfigDict, Field, GetCoreSchemaHandler, HttpUrl
 from pydantic_core import core_schema
-from pydantic import GetCoreSchemaHandler
 from pydantic_core.core_schema import ValidationInfo
+
 
 class PyObjectId(ObjectId):
     """
@@ -55,16 +57,17 @@ class ArticlesFinanciersResponse(BaseModel):
     id: PyObjectId = Field(alias="_id")
     title: str = Field(alias="Title")
     content: str = Field(alias="Content")
-    url: Optional[HttpUrl]
-    author: Optional[str] = Field(alias="Author", default=None)
-    published_at: Optional[datetime] = Field(alias="Date of publication", default=None)
-    scraped_at: Optional[datetime] = Field(alias="scraped_at", default=None)
+    url: HttpUrl | None
+    author: str | None = Field(alias="Author", default=None)
+    published_at: datetime | None = Field(alias="Date of publication", default=None)
+    scraped_at: datetime | None = Field(alias="scraped_at", default=None)
 
 
-    class Config:
-        populate_by_name = True  # Anciennement allow_population_by_field_name en v1
-        frozen = True  # Rend les objets Pydantic immuables (comme des tuples)
-        from_attributes = True  # Permet de lire à partir d'attributs (comme un ORM)
-        json_encoders = {ObjectId: str}  # Permet de convertir automatiquement ObjectId en str
-        arbitrary_types_allowed = True  # Permet d'utiliser des types personnalisés comme PyObjectId
+    class MonModele(BaseModel):
+        model_config = ConfigDict(
+            populate_by_name=True,
+            frozen=True,
+            from_attributes=True,
+            arbitrary_types_allowed=True,
+        )
 

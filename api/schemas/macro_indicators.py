@@ -1,10 +1,13 @@
 # Charger les librairies nécessaires
-import os, sys
+import os
+import sys
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),"..", "..")))
 
+from datetime import date
+
 from pydantic import BaseModel
-from datetime import date, datetime
-from typing import Optional
+
 
 # --- MRO ---
 class MroResponse(BaseModel):
@@ -15,19 +18,28 @@ class MroResponse(BaseModel):
         id_mro (int) : Identifiant de l'enregistrement.
         date_mro (date) : Date de publication du taux MRO.
         rate_mro (float | None) : Taux d'intérêt MRO.
-        time_periode_mro (str | None) : Période de référence (ex : 'Mensuel', 'Trimestriel').
+        time_period_mro (str | None) : Période de référence (ex : 'Mensuel', 'Trimestriel').
         indicator_name_mro (str | None) : Nom de l'indicateur (ex : 'Main Refinancing Operations').
         source_label_mro (str | None) : Source de la donnée (ex : 'BCE').
     """
     id_mro: int
     date_mro: date
-    rate_mro: Optional[float]
-    time_periode_mro: Optional[str]
-    indicator_name_mro: Optional[str]
-    source_label_mro: Optional[str]
+    rate_mro: float | None
+    time_period_mro: str | None
+    indicator_name_mro: str | None
+    source_label_mro: str | None
 
     class Config:
-        from_attribute = True
+        from_attributes = True   
+        
+        
+class MroDailyResponse(BaseModel):
+    """Taux MRO issu de la vue quotidienne."""
+
+    date_mro: date
+    rate_mro: float | None
+    class Config:
+        from_attributes = True
 
 # --- INFLATION ---
 class InflationResponse(BaseModel):
@@ -38,16 +50,16 @@ class InflationResponse(BaseModel):
         id_inflation (int) : Identifiant de l'enregistrement.
         date_inflation (date) : Date de publication du taux d'inflation.
         inflation_rate (float | None) : Taux d'inflation (en pourcentage).
-        time_periode_inflation (str | None) : Période de référence (ex : 'Mensuel').
+        time_period_inflation (str | None) : Période de référence (ex : 'Mensuel').
         indicator_name_inflation (str | None) : Nom de l'indicateur.
         source_label_inflation (str | None) : Source de la donnée (ex : 'BCE').
     """
     id_inflation: int
     date_inflation: date
-    inflation_rate: Optional[float]
-    time_periode_inflation: Optional[str]
-    indicator_name_inflation: Optional[str]
-    source_label_inflation: Optional[str]
+    inflation_rate: float | None
+    time_period_inflation: str | None
+    indicator_name_inflation: str | None
+    source_label_inflation: str | None
 
     class Config:
         from_attributes = True # Permet à Pydantic de lire les données directement à partir d'un objet ORM 
@@ -67,9 +79,9 @@ class UnemploymentResponse(BaseModel):
     """
     id_unemployment: int
     date_unemployment: date
-    unemployment_rate: Optional[float]
-    indicator_name_unemployment: Optional[str]
-    source_label_unemployment: Optional[str]
+    unemployment_rate: float | None
+    indicator_name_unemployment: str | None
+    source_label_unemployment: str | None
 
     class Config:
         from_attributes = True # Permet à Pydantic de lire les données directement à partir d'un objet ORM 
@@ -89,13 +101,14 @@ class MonetaryM3Response(BaseModel):
     """
     id_monetary_m3: int
     date_monetary_m3: date
-    monetary_m3_rate: Optional[float]
-    indicator_name_m3: Optional[str]
-    source_label_m3: Optional[str]
+    monetary_m3_rate: float | None
+    indicator_name_m3: str | None
+    source_label_m3: str | None
 
     class Config:
         from_attributes = True # Permet à Pydantic de lire les données directement à partir d'un objet ORM 
-                        # afin qu'on ait pas besoin de tout convertir à la main(dict ou autre)
+                               # afin qu'on ait pas besoin de tout convertir à la main(dict ou autre)
+                        
                         
 # --- INDICATEUR MACROECONOMIQUE ---
 class MacroIndicatorsResponse(BaseModel):
@@ -111,10 +124,10 @@ class MacroIndicatorsResponse(BaseModel):
     """
 
     day: date
-    rate_mro: Optional[float]
-    inflation_rate: Optional[float]
-    unemployment_rate: Optional[float]
-    monetary_m3_rate: Optional[float]
+    rate_mro: float | None
+    inflation_rate: float | None
+    unemployment_rate: float | None
+    monetary_m3_rate: float | None
 
     class Config:
         from_attributes = True  # Permet à Pydantic de lire les données directement à partir d'un objet ORM 

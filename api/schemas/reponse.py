@@ -1,16 +1,18 @@
 
+from typing import Any
+
 from pydantic import BaseModel
-from typing import Any, Optional, Dict, List
+
 
 class StandardResponse(BaseModel):
     """Réponse API standardisée"""
     success: bool
     message: str
-    data: Optional[List[Any]] = None
-    count: Optional[int] = None
-    metadata: Optional[Dict[str, Any]] = None
+    data: list[Any] | None = None
+    count: int | None = None
+    metadata: dict[str, Any] | None = None
 
-def success_response(data: Any = None, message: str = "Opération réussie", count: int = None, metadata: Dict = None):
+def success_response(data: Any = None, message: str = "Opération réussie", count: int | None = None, metadata: dict[str, Any] | None = None):
     """Créer une réponse de succès"""
     if data is not None and not isinstance(data, list):
         data = [data]
@@ -21,13 +23,14 @@ def success_response(data: Any = None, message: str = "Opération réussie", cou
         data=data,
         count=count or (len(data) if data else 0),
         metadata=metadata or {}
-    ).dict()
+    ).model_dump()
 
-def error_response(message: str, data: Any = None):
+def error_response(message: str, data: Any = None, metadata: dict[str, Any] | None = None):
     """Créer une réponse d'erreur"""
     return StandardResponse(
         success=False,
         message=message,
         data=data,
-        count=0
-    ).dict()
+        count=0,
+        metadata=metadata or {}
+    ).model_dump()

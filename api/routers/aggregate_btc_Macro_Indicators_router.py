@@ -5,6 +5,7 @@ import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
 from datetime import date
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
@@ -30,9 +31,9 @@ router = APIRouter(
 
 @router.get("/", response_model=list[BitcoinMacroIndicatorsResponse])
 def get_bitcoin_macro_indicators_view(
-    start_date: date = Query(..., description="Date de début de la plage (YYYY-MM-DD)"),
-    end_date: date = Query(..., description="Date de fin de la plage (YYYY-MM-DD)"),
-    db: Session = Depends(get_db)
+    start_date: Annotated[date, Query(..., description="Date de début de la plage (YYYY-MM-DD)")],
+    end_date: Annotated[date, Query(..., description="Date de fin de la plage (YYYY-MM-DD)")],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """
         Endpoint pour récupérer les données Bitcoin croisées avec les indicateurs macroéconomiques.

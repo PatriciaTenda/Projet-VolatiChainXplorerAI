@@ -1,13 +1,25 @@
 # Charger les librairies nécessaires
-import os, sys
+import os
+import sys
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
-from sqlalchemy.orm import Session
-from sqlalchemy import text
 from datetime import date
 
-from database.postgres.models.macro_indicators import MacroBceMRO, MacroBceInflation, MacroBcetauxChomage, MacroBceMonetaryM3
-from api.exceptions.macro_indicators_exceptions import MacroIndicatorsNotFound, ValidationError, DatabaseError
+from sqlalchemy import text
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm import Session
+
+from api.exceptions.macro_indicators_exceptions import (
+    DatabaseError,
+    MacroIndicatorsNotFound,
+    ValidationError,
+)
+from database.postgres.models.macro_indicators import (
+    MacroBceInflation,
+    MacroBceMonetaryM3,
+    MacroBcetauxChomage,
+)
 from setup.logger_config import setup_logger
 
 # Initialisation du logger
@@ -32,20 +44,35 @@ def get_mro_rates_by_date_range(db: Session, start_date: date, end_date: date):
     Raises:
         ValidationError: Si les dates ne sont pas valides.
     """
-    if not isinstance(start_date, date) or not isinstance(end_date, date):
-        logger.error(f"start_date et end_date doivent être de type date.")
-        raise ValidationError(message="'start_date' ou 'end_date' est invalide.")
+    if start_date > end_date:
+        raise ValidationError(
+            message="'start_date' ne peut pas être postérieur à 'end_date'."
+        )
+
+    query = text("""
+        SELECT
+            date AS date_mro,
+            rate_mro
+        FROM public.v_macro_indicators_daily_v1
+        WHERE date BETWEEN :start_date AND :end_date
+        ORDER BY date ASC
+    """)
 
     try:
-        mro_rate = db.query(MacroBceMRO).filter(MacroBceMRO.date_mro.between(start_date, end_date)).order_by(MacroBceMRO.date_mro.asc()).all()
-        if mro_rate:
-            logger.info(f"{len(mro_rate)} taux MRO trouvés du {start_date} au {end_date}.")
-        else:
-            logger.warning(f"Aucun taux MRO trouvé entre {start_date} et {end_date}.")
-        return mro_rate
-    except Exception as e:
-        logger.error(f"Erreur lors de la récupération des taux MRO : {e}", exc_info=True)
-        raise DatabaseError(operation="get_mro_rates_by_date_range")
+        result = db.execute(
+            query,
+            {
+                "start_date": start_date,
+                "end_date": end_date,
+            },
+        )
+        return result.mappings().all()
+
+    except SQLAlchemyError as e:
+        logger.exception("Erreur lors de la récupération du MRO quotidien")
+        raise DatabaseError(
+            operation="get_mro_rates_by_date_range"
+        ) from e
 
 
 # ----------- INFLATION -----------
@@ -66,23 +93,56 @@ def get_all_inflation_rates(db: Session, skip: int, limit: int):
         ValidationError: Si skip ou limit sont invalides.
         MacroIndicatorsNotFound: Si aucun enregistrement trouvé.
     """
+    # 1. Vérifier les paramètres skip et limit
     if skip < 0 or limit <= 0:
         raise ValidationError(message=f"'skip' ou 'limit' invalide (skip={skip}, limit={limit})")
-
+    
+    # 2. Récupérer les taux d'inflation avec pagination
     try:
-        inflation_rate = db.query(MacroBceInflation).order_by(MacroBceInflation.date_inflation.desc()).offset(skip).limit(limit).all()
+        inflation_rate = (
+            db
+            .query(MacroBceInflation)
+            .order_by(
+                MacroBceInflation
+                .date_inflation
+                .desc()
+            )
+            .offset(skip)
+            .limit(limit)
+            .all()
+        )
 
-        if not inflation_rate:
-            logger.warning(f"Aucun taux d'inflation trouvé (skip={skip}, limit={limit})")
-            raise MacroIndicatorsNotFound(skip=skip, limit=limit)
-
-        logger.info(f"{len(inflation_rate)} taux d'inflation récupérés.")
-        return inflation_rate
-
-    except Exception as e:
-        logger.error(f"Erreur lors de la récupération des taux d'inflation : {e}", exc_info=True)
+       
+    except SQLAlchemyError:
+        logger.exception(
+            "Erreur lors de la récupération des taux d'inflation"
+        )
         raise DatabaseError(operation="get_all_inflation_rates")
-
+    
+    # 3. Logger le résultat
+    if inflation_rate:
+        logger.info("%d taux d'inflation trouvés (skip=%d, limit=%d).",
+                    len(inflation_rate), skip, limit)
+    else:
+        logger.warning(
+            "Aucun taux d'inflation trouvé (skip=%d, limit=%d).",
+            skip, limit
+        )
+    return inflation_rate
+    
+    # 3. Logger le résultat et retourner les données
+    if not inflation_rate:
+        logger.warning(
+            "Aucun taux d'inflation trouvé (skip=%s, limit=%s)",
+            skip, limit
+        )
+        raise MacroIndicatorsNotFound(skip=skip, limit=limit)
+    else:
+        logger.info(
+            "%d taux d'inflation récupérés.",
+            len(inflation_rate)
+        )
+    return inflation_rate
 
 # ----------- CHÔMAGE -----------
 
@@ -102,21 +162,40 @@ def get_all_unemployment_rates(db: Session, skip: int, limit: int):
         ValidationError: Paramètres invalides.
         MacroIndicatorsNotFound: Si aucun résultat trouvé.
     """
+    # 1. Valider les paramètres de pagination
     if skip < 0 or limit <= 0:
         raise ValidationError(message=f"'skip' ou 'limit' invalide (skip={skip}, limit={limit})")
 
+    # 2. Récupérer les taux de chômage avec pagination
     try:
-        unemployment_rate = db.query(MacroBcetauxChomage).order_by(MacroBcetauxChomage.date_unemployment.desc()).offset(skip).limit(limit).all()
+        unemployment_rate = (
+            db
+            .query(MacroBcetauxChomage)
+            .order_by(MacroBcetauxChomage.date_unemployment.desc())
+            .offset(skip)
+            .limit(limit)
+            .all()
+        )
 
-        if not unemployment_rate:
-            logger.warning(f"Aucun taux de chômage trouvé (skip={skip}, limit={limit})")
-            raise MacroIndicatorsNotFound(skip=skip, limit=limit)
-
-        return unemployment_rate
-
-    except Exception as e:
-        logger.error(f"Erreur lors de la récupération des taux de chômage : {e}", exc_info=True)
+    except SQLAlchemyError:
+        logger.exception(
+            "Erreur lors de la récupération des taux de chômage"
+        )
         raise DatabaseError(operation="get_all_unemployment_rates")
+
+    # 3. Logger le résultat et retourner les données
+    if not unemployment_rate:
+        logger.warning(
+            "Aucun taux de chômage trouvé (skip=%s, limit=%s)",
+            skip, limit
+        )
+        raise MacroIndicatorsNotFound(skip=skip, limit=limit)
+    else:
+        logger.info(
+            "%d taux de chômage récupérés.",
+            len(unemployment_rate)
+        )
+    return unemployment_rate
 
 
 # ----------- MASSE MONÉTAIRE M3 -----------
@@ -137,21 +216,40 @@ def get_all_monetary_m3_rates(db: Session, skip: int, limit: int):
         ValidationError: Paramètres invalides.
         MacroIndicatorsNotFound: Si aucun résultat trouvé.
     """
+    # 1. Valider les paramètres de pagination
     if skip < 0 or limit <= 0:
         raise ValidationError(message=f"'skip' ou 'limit' invalide (skip={skip}, limit={limit})")
 
+    # 2. Récupérer les taux M3 avec pagination
     try:
-        m3_rate = db.query(MacroBceMonetaryM3).order_by(MacroBceMonetaryM3.date_monetary_m3.desc()).offset(skip).limit(limit).all()
+        m3_rate = (
+            db
+            .query(MacroBceMonetaryM3)
+            .order_by(MacroBceMonetaryM3.date_monetary_m3.desc())
+            .offset(skip)
+            .limit(limit)
+            .all()
+        )
 
-        if not m3_rate:
-            logger.warning(f"Aucun taux M3 trouvé (skip={skip}, limit={limit})")
-            raise MacroIndicatorsNotFound(skip=skip, limit=limit)
-
-        return m3_rate
-
-    except Exception as e:
-        logger.error(f"Erreur lors de la récupération des taux M3 : {e}", exc_info=True)
+    except SQLAlchemyError:
+        logger.exception(
+            "Erreur lors de la récupération des taux M3"
+        )
         raise DatabaseError(operation="get_all_monetary_m3_rates")
+
+    # 3. Logger le résultat et retourner les données
+    if not m3_rate:
+        logger.warning(
+            "Aucun taux M3 trouvé (skip=%s, limit=%s)",
+            skip, limit
+        )
+        raise MacroIndicatorsNotFound(skip=skip, limit=limit)
+    else:
+        logger.info(
+            "%d taux M3 récupérés.",
+            len(m3_rate)
+        )
+    return m3_rate
 
 
 # ----------- AGRÉGÉ GLOBAL (depuis la vue) -----------
@@ -187,6 +285,6 @@ def get_macro_indicators_daily(db: Session, start_date: date, end_date: date):
         result = db.execute(query, {"start_date": start_date, "end_date": end_date})
         logger.info(f"Indicateurs macro récupérés de {start_date} à {end_date}.")
         return result.fetchall()
-    except Exception as e:
-        logger.error(f"Erreur lors de la récupération des indicateurs journaliers : {e}", exc_info=True)
-        raise RuntimeError(f"Erreur lors de la récupération des indicateurs macroéconomiques : {e}")
+    except SQLAlchemyError:
+        logger.exception("Erreur lors de la récupération des indicateurs journaliers")
+        raise RuntimeError("Erreur lors de la récupération des indicateurs macroéconomiques")

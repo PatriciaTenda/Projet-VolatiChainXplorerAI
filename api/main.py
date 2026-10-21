@@ -16,7 +16,9 @@ import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),"..")))
 from fastapi import FastAPI
 from pymongo import MongoClient
+from pymongo.errors import PyMongoError
 from sqlalchemy import text
+from sqlalchemy.exc import SQLAlchemyError
 
 from api.routers.aggregate_btc_Macro_Indicators_router import (
     router as bitcoin_macro_indicators_router,
@@ -139,7 +141,7 @@ def health_check():
         with engine.connect() as connection:
             connection.execute(text("SELECT 1"))
             pg_status = "ok"
-    except Exception as e:
+    except SQLAlchemyError as e:
         print(f"[POSTGRES ERROR] {e}")
         pg_status = "error"
    
@@ -150,7 +152,7 @@ def health_check():
             mongo_db = mongo_client[MONGO_DB]
             mongo_db.command("ping")
             mongo_status = "ok"
-    except Exception as e:
+    except PyMongoError as e:
         print(f"[MONGO ERROR] {e}")
         mongo_status = "error"
   
