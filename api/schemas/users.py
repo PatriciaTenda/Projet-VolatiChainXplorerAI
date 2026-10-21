@@ -1,10 +1,12 @@
 
 # Charger les librairies nécessaires
-import os, sys
+import os
+import sys
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),"..", "..")))
 
-from pydantic import BaseModel, Field, EmailStr
-from typing import Optional
+from pydantic import BaseModel, EmailStr, Field
+
 
 # ----- SCHEMAS POUR UTILISATEUR -----
 class UserLogin(BaseModel):
@@ -53,5 +55,5 @@ class UserResponse(BaseModel):
     is_active: bool
     
     class Config:
-        from_attributes = True # Permet à Pydantic de lire les données directement à partir d'un objet ORM 
-                                # afin qu'on ait pas besoin de tout convertir à la main(dict ou autre)
+        from_attributes = True  # Permet à Pydantic de lire les données directement à partir d'un objet ORM 
+                                 # afin qu'on ait pas besoin de tout convertir à la main(dict ou autre)

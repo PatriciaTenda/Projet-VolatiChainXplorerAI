@@ -1,9 +1,11 @@
 # Charger les bibliothèques nécessaires
-import os, sys
+import os
+import sys
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),"..", "..", "..")))
 
 from datetime import datetime, timedelta
-from typing import Optional
+
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 
@@ -65,21 +67,21 @@ class JWTHandler:
         Returns:
             str: Le token JWT signé.
         """
-        expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        expire = datetime.now() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
 
         payload = {
             "user_id": user_id,
             "email": email,
             "role": role,
             "exp": expire,
-            "iat": datetime.utcnow()
+            "iat": datetime.now()
         }
 
         token = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
         return token
 
     @staticmethod
-    def decode_token(token: str) -> Optional[dict]:
+    def decode_token(token: str) -> dict|None:
         """
         Décode un token JWT et vérifie sa validité (expiration, structure).
 
@@ -87,14 +89,14 @@ class JWTHandler:
             token (str): Le token JWT à décoder.
 
         Returns:
-            Optional[dict]: Les informations extraites du token (user_id, email, role),
-                            ou None si le token est invalide ou expiré.
+            dict|None: Les informations extraites du token (user_id, email, role),
+                       ou None si le token est invalide ou expiré.
         """
         try:
             payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
 
             exp = payload.get("exp")
-            if exp and datetime.utcnow() > datetime.fromtimestamp(exp):
+            if exp and datetime.now() > datetime.fromtimestamp(exp):
                 return None
 
             return {

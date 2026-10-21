@@ -1,13 +1,16 @@
 # Charger les librairies nécessaires
 import os
 import sys
+
 # Ajouter le dossier racine au PATH pour les imports relatifs
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
-from pymongo.collection import Collection
 from bson import ObjectId
+from pymongo.collection import Collection
+from pymongo.errors import PyMongoError
+
 from api.schemas.articles_financiers import ArticlesFinanciersResponse
-from database.conn_db.connect_mongodb import client, MONGO_DB
+from database.conn_db.connect_mongodb import MONGO_DB, client
 from setup.logger_config import setup_logger
 
 # Mise en place d'un logger pour le module
@@ -57,14 +60,20 @@ def get_article_by_id(collection: Collection, article_id: str) -> ArticlesFinanc
     Returns:
         ArticlesFinanciersResponse | None: L'article trouvé, ou None si aucun résultat.
     """
+    if not ObjectId.is_valid(article_id):
+        logger.warning("ID invalide : %s", article_id)
+        return None
+
     try:
         doc = collection.find_one({"_id": ObjectId(article_id)})
-        logger.info("Les articles ont été récupérés avec succès.")
-        if doc:
-            return ArticlesFinanciersResponse(**doc)
+    except PyMongoError:
+        logger.exception("Erreur MongoDB pour l'article %s", article_id)
+        raise
+
+    if doc is None:
+        logger.info("Aucun article trouvé pour l'ID %s", article_id)
         return None
-    except Exception as e:
-        if not ObjectId.is_valid(article_id):
-            logger.error(f"ID invalide : {article_id}")
-        return None
+
+    logger.info("Article %s récupéré avec succès", article_id)
+    return ArticlesFinanciersResponse(**doc)
        

@@ -4,14 +4,17 @@ Il inclut les tables suivantes :
 - t_users : stocke les informations des utilisateurs de l'API (identifiant, nom, email, mot de passe).
 """
 # Charger les bibliothèques nécessaires
-import os, sys
+import os
+import sys
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),"..", "..", "..")))
 """print("Chemins de recherche :")
 for p in sys.path:
     print(p)
 """
+from sqlalchemy import Boolean, Column, Integer, String
+
 from database.conn_db.connect_postgresql import Base
-from sqlalchemy import Column, Integer, String, Boolean
 
 """Créer les modèles de la base de donnée"""
 

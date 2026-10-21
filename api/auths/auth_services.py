@@ -1,15 +1,17 @@
 # === Import des bibliothèques nécessaires ===
-import os, sys
+import os
+import sys
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
 from sqlalchemy.orm import Session
-from database.conn_db.connect_postgresql import SessionLocal
-from database.postgres.models.users import Users
-from api.schemas.users import UserCreate, UserLogin, UserResponse
+
+from api.auths.jwt_handler import JWTHandler
+from api.exceptions.user_exceptions import ValidationError
 from api.schemas.auth import Token
 from api.schemas.reponse import success_response
-from api.exceptions.user_exceptions import ValidationError
-from api.auths.jwt_handler import JWTHandler
+from api.schemas.users import UserCreate, UserLogin, UserResponse
+from database.postgres.models.users import Users
 from setup.logger_config import setup_logger
 
 # === Initialisation du logger ===
@@ -130,7 +132,7 @@ class AuthService:
         )
 
     @staticmethod
-    def get_current_user(token: str) -> Users:
+    def get_current_user(db: Session, token: str) -> Users:
         """
         Récupère les informations de l'utilisateur à partir du token JWT.
 
@@ -144,9 +146,6 @@ class AuthService:
         Raises:
             ValidationError: si le token est invalide ou expiré, ou si l'utilisateur n'existe pas.
         """
-        # Connexion à la base de données
-        db: Session=SessionLocal()
-
         logger.info("Décodage du token pour récupérer l'utilisateur courant")
         # Décodage du token
         payload = JWTHandler.decode_token(token)

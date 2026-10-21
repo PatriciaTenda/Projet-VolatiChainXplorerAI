@@ -4,24 +4,26 @@
     Description :
         Ce module définit les schémas Pydantic utilisés pour la restitution des données croisées entre les cours du Bitcoin, les indicateurs macroéconomiques et les articles financiers.
         Il est utilisé dans l'API pour valider et structurer les données renvoyées par les endpoints.
-"""
+"""  # noqa: N999
 
 # Charger les librairies nécessaires
-import os, sys
+import os
+import sys
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
-from pydantic import BaseModel
 from datetime import date
-from typing import Optional, List
-from api.schemas.aggregate_btc_Macro_Indicators import BitcoinMacroIndicatorsResponse
+
+from pydantic import BaseModel
+
 
 class BtcIndicatorsArticlesResponse(BaseModel):
     day: date  
-    close_price_bitcoin: Optional[float]
-    rate_mro: Optional[float]
-    inflation_rate: Optional[float]
-    unemployment_rate: Optional[float]
-    monetary_m3_rate: Optional[float]
+    close_price: float | None
+    rate_mro: float | None
+    inflation_rate: float | None
+    unemployment_rate: float | None
+    monetary_m3_rate: float | None
    
     class Config:
             from_attributes = True
@@ -29,4 +31,4 @@ class BtcIndicatorsArticlesResponse(BaseModel):
 
 class CorrelatedResponse(BaseModel):
     article_count: int
-    results: List[BtcIndicatorsArticlesResponse]
+    results: list[BtcIndicatorsArticlesResponse]

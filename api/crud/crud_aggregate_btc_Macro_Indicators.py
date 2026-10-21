@@ -1,9 +1,13 @@
-import os, sys
+import os  # noqa: N999
+import sys
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
-from sqlalchemy.orm import Session
-from sqlalchemy import text
 from datetime import date
+
+from sqlalchemy import text
+from sqlalchemy.orm import Session
+
 from setup.logger_config import setup_logger
 
 # Mise en place d'un logger pour le module
@@ -25,15 +29,27 @@ def get_bitcoin_macro_indicators_range(db: Session, start_date: date, end_date: 
     """
     try:
         query = text("""
-            SELECT *
-            FROM v_bitcoin_macro_indicator_daily
-            WHERE day BETWEEN :start_date AND :end_date
-            ORDER BY day ASC
+                SELECT
+                    day,
+                    open,
+                    high,
+                    low,
+                    close AS close_price,
+                    volume,
+                    market_cap,
+                    rate_mro,
+                    inflation_rate,
+                    unemployment_rate,
+                    monetary_m3_rate
+                FROM public.v_bitcoin_macro_indicator_daily
+                WHERE day BETWEEN :start_date AND :end_date
+                ORDER BY day ASC
         """)
+        
         result = db.execute(query, {"start_date": start_date, "end_date": end_date})
         data = result.fetchall()
         logger.info(f"{len(data)} lignes récupérées de v_btc_macro_daily entre {start_date} et {end_date}.")
         return data
     except Exception as e:
-        logger.error(f"Erreur lors de la requête BTC + Macro : {e}", exc_info=True)
-        raise RuntimeError("Erreur lors de la récupération des données agrégées.")
+        logger.exception("Erreur lors de la requête BTC + Macro")
+        raise RuntimeError(str(e)) from e

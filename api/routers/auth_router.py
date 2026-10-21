@@ -1,17 +1,21 @@
 # Chargement des librairies nécessaires
-import os, sys
+import os
+import sys
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),"..", "..")))
+
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from database.postgres.models.users import Users
-from database.conn_db.connect_postgresql import get_db
-from api.schemas.users import UserLogin, UserCreate
-from api.schemas.reponse import success_response
 from api.auths.auth_services import AuthService
-from api.auths.dependencies import require_admin, get_current_active_user
-from api.exceptions.user_exceptions import ValidationError, DatabaseError
+from api.auths.dependencies import get_current_active_user, require_admin
+from api.exceptions.user_exceptions import ValidationError
+from api.schemas.reponse import success_response
+from api.schemas.users import UserCreate, UserLogin
+from database.conn_db.connect_postgresql import get_db
+from database.postgres.models.users import Users
 from setup.logger_config import setup_logger
 
 # Mise en place du logger pour ce fichier
@@ -22,7 +26,7 @@ logger = setup_logger(name_file)
 router = APIRouter(prefix="/api/v1/auth", tags=["Authentication"])
 
 @router.post("/register")
-def register(user_data: UserCreate, db: Session = Depends(get_db)):
+def register(user_data: UserCreate, db: Annotated[Session, Depends(get_db)]):
     """Créer un nouveau compte utilisateur"""
     try:
         logger.info(f"Tentative d'inscription pour l'email : {user_data.email}")
@@ -33,11 +37,11 @@ def register(user_data: UserCreate, db: Session = Depends(get_db)):
         logger.error(f"Erreur de validation lors de l'inscription : {e.message}")
         raise HTTPException(status_code=400, detail=e.message)
     except Exception as e:
-        logger.error(f"Erreur inattendue lors de l'inscription : {str(e)}")
-        raise HTTPException(status_code=500, detail="Erreur lors de la création du compte")
+        logger.exception("Erreur inattendue lors de l'inscription")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/login")
-def login(login_data: UserLogin, db: Session = Depends(get_db)):
+def login(login_data: UserLogin, db: Annotated[Session, Depends(get_db)]):
     """Se connecter et obtenir un token JWT"""
     try:
         logger.info(f"Tentative de connexion pour l'email : {login_data.email}")
@@ -48,11 +52,11 @@ def login(login_data: UserLogin, db: Session = Depends(get_db)):
         logger.error(f"Échec de la connexion (validation) : {e.message}")
         raise HTTPException(status_code=401, detail=e.message)
     except Exception as e:
-        logger.error(f"Erreur inattendue lors de la connexion : {str(e)}")
-        raise HTTPException(status_code=500, detail="Erreur lors de la connexion")
+        logger.exception("Erreur inattendue lors de la connexion")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/me")
-def get_me(current_user: Users = Depends(get_current_active_user)):
+def get_me(current_user: Annotated[Users, Depends(get_current_active_user)]):
     """Récupérer les informations de l'utilisateur connecté
         Récupérer les informations de l'utilisateur actuellement connecté.
 
@@ -74,11 +78,11 @@ def get_me(current_user: Users = Depends(get_current_active_user)):
     logger.info(f"Récupération des infos pour l'utilisateur connecté : {current_user.email_user}")
     return success_response(
         data={
-            "id": current_user.id_user,
-            "name": current_user.name_user,
-            "email": current_user.email_user,
-            "role": current_user.role_user,
-            "is_active": current_user
+            "id_user": current_user.id_user,
+            "name_user": current_user.name_user,
+            "email_user": current_user.email_user,
+            "role_user": current_user.role_user,
+            "is_active": current_user.is_active
             
         },
         message="Informations utilisateur récupérées"
@@ -86,8 +90,8 @@ def get_me(current_user: Users = Depends(get_current_active_user)):
 
 @router.get("/users")
 def get_all_users(
-    db: Session = Depends(get_db),
-    current_user: Users = Depends(require_admin)
+    db: Annotated[Session, Depends(get_db)],
+    current_user: Annotated[Users, Depends(require_admin)]
 ):
     """
     Récupérer tous les utilisateurs (admin seulement).
@@ -103,11 +107,11 @@ def get_all_users(
         logger.info(f"Récupération de tous les utilisateurs par l'admin : {current_user.email_user}")
         return AuthService.get_all_users(db)
     except Exception as e:
-        logger.error(f"Erreur lors de la récupération des utilisateurs : {type(e).__name__} - {e}")
-        raise HTTPException(status_code=500, detail="Erreur interne lors de la récupération des utilisateurs")
+        logger.exception("Erreur lors de la récupération des utilisateurs")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/logout")
-def logout(current_user: Users = Depends(get_current_active_user)):
+def logout(current_user: Annotated[Users, Depends(get_current_active_user)]):
     """Se déconnecter (invalidation côté client)"""
     logger.info(f"Déconnexion de l'utilisateur : {current_user.email_user}")
     return success_response(

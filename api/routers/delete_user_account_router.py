@@ -1,10 +1,15 @@
 # Charger les librairies nécessaires
-import os, sys
+import os
+import sys
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),"..", "..")))
 
-from fastapi import Depends, HTTPException, status, APIRouter
-from api.auths.auth_services import AuthService  # récupère l'utilisateur connecté
+from typing import Annotated
+
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+
+from api.auths.dependencies import get_current_user  # récupère l'utilisateur connecté
 from database.conn_db.connect_postgresql import get_db
 from database.postgres.models.users import Users
 from setup.logger_config import setup_logger
@@ -23,8 +28,8 @@ router = APIRouter(
 
 @router.delete("/", status_code=204)
 def delete_account(
-    db: Session = Depends(get_db),
-    current_user: Users= Depends(AuthService.get_current_user)
+    db: Annotated[Session, Depends(get_db)],
+    current_user: Annotated[Users, Depends(get_current_user)]
     
 ):
     user = db.query(Users).filter(Users.id_user == current_user.id_user).first()
