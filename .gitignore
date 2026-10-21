@@ -210,3 +210,6 @@ __pycache__/
 
 # Autogluon environment
 .venv_autogluon/
+
+# api inference environment
+.venv_api_inference/
