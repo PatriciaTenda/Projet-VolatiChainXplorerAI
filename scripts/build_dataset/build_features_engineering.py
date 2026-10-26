@@ -13,7 +13,6 @@ from pandas.api.indexers import FixedForwardWindowIndexer
 # Definir le chemin du projet
 project_root = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(project_root))
-print(project_root)
 from setup.logger_config import setup_logger
 
 # Definir le nom du module
@@ -40,7 +39,7 @@ export_path = (
 )
 
 FEATURES_COLUMNS = [
-     "log_return",
+    "log_return",
     "volatility_3d",
     "volatility_7d",
     "volatility_14d",

@@ -31,6 +31,7 @@ from api.routers.correlated_btc_rates_articlesFi_router import (
 )
 from api.routers.delete_user_account_router import router as deleted_user_router
 from api.routers.macro_indicators_router import router as macro_indicators_router
+from api.routers.prediction_router import router as prediction_router
 from database.conn_db.connect_mongodb import MONGO_DB, URI
 from database.conn_db.connect_postgresql import engine
 
@@ -42,13 +43,16 @@ app = FastAPI(
         "Cette interface vous permet d'explorer, d'analyser et de croiser intelligemment :\n"
         "- des données macroéconomiques (taux directeurs, inflation, chômage, masse monétaire M3),\n"
         "- des données de marché liées à la volatilité du **Bitcoin**,\n"
-        "- des articles financiers issus de sources spécialisées.\n\n"
+        "- des articles financiers issus de sources spécialisées,\n"
+        "- Vous pouvez également obtenir des prédictions de la volatilité du Bitcoin à 7 et 30 jours.\n\n"
         "**Fonctionnalités principales :**\n"
         "-  Architecture modulaire (CRUD, routes, schémas Pydantic, gestion d'exceptions)\n"
         "-  Validation rigoureuse des données avec **Pydantic**\n"
         "-  Gestion centralisée des erreurs personnalisées\n"
         "-  Restitution des données **PostgreSQL** et **MongoDB**\n"
-        "-  Prêt pour intégration dans des dashboards ou outils d'analyse IA\n\n"
+        "-  Prêt pour intégration dans des dashboards ou outils d'analyse IA\n"
+        "-  Prédictions de la volatilité du Bitcoin à 7 et 30 jours\n\n"
+        
         "**Aperçu rapide des routes principales :**\n"
         "-  `/api/v1/bitcoin-prices` : Prix journaliers du Bitcoin (PostgreSQL)\n"
         "-  `/api/v1/macro-indicators` : Les indicateurs macroéconomiques de la BCE\n"
@@ -56,6 +60,7 @@ app = FastAPI(
         "-  `/api/v1/correlated-btc-rates-articlesFi` : Données croisées entre les cours du Bitcoin, les indicateurs macroéconomiques et les articles financiers\n"
         "-  `/api/v1/auth` : Authentification et gestion des utilisateurs\n"
         "-  `/api/v1/delete-user-account` : Suppression du compte utilisateur\n"
+        "-  `/api/v1/bitcoin/volatility/predictions` : Prédictions de la volatilité du Bitcoin"
     ),
     version="1.0.0"
 )
@@ -69,20 +74,25 @@ def welcome():
     return{
         # project → Présente le Nom et le version du projet
         "project": "VolatiChainXplorer AI - API v1.0 ",
+        
         # description → Présente la finalité réelle de l'API
         "description": (
             "Bienvenue sur l'API VolatiChainXplorer AI. "
             "Cette interface vous permet d'explorer, d'analyser et de croiser des données économiques macroéconomiques "
             "et des données sur la volatilité du Bitcoin."
+            "Vous pouvez également obtenir des prédictions de la volatilité du Bitcoin à 7 et 30 jours."
         ),
+        
         # features → Présente ce que l' API propose d'intéressant ou de structurant
         "features": [
             " Architecture modulaire (CRUD, routes, schémas Pydantic, gestion d'exceptions)",
             " Validation rigoureuse des données avec Pydantic",
             " Gestion centralisée des erreurs personnalisées",
             " Restitution des données PostgreSQL et MongoDB",
-            " Prêt pour intégration dans des dashboards ou outils d'analyse IA"
+            " Prêt pour intégration dans des dashboards ou outils d'analyse IA",
+            " Prédictions de la volatilité du Bitcoin à 7 et 30 jours"
         ],
+        
         # routes de l'API → Pour guider rapidement un utilisateur qui teste depuis Swagger
         "routes_API_VolatiChainXplorerAI": {
             "/api/v1/correlated-btc-rates-articlesFi": "Données croisées entre les cours du Bitcoin, les indicateurs macroéconomiques et les articles financiers",
@@ -91,6 +101,7 @@ def welcome():
             "/api/v1//bitcoin-prices": "Prix journaliers du Bitcoin (PostgreSQL)",
             "/api/v1/macro-indicator": "Indicateurs macroéconomiques de la BCE",
             "/api/v1/articles-financiers": "Articles économiques et financiers relatifs au bitcoinet sa volatilité (MongoDB)",
+            "/api/v1/bitcoin/volatility/predictions": "Prédictions de la volatilité du Bitcoin à 7 et 30 jours"
         }
     }
 
@@ -113,6 +124,9 @@ app.include_router(articles_financiers_router)
 
 # Les données croisées entre les cours du Bitcoin, les indicateurs macroéconomiques et les articles financiers
 app.include_router(correlated_btc_rates_articlesFi_router)
+
+# Prédictions de la volatilité du Bitcoin
+app.include_router(prediction_router)
 
 
 # Supprimer le compte d'un utilisateur

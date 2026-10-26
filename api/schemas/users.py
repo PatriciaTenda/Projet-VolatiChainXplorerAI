@@ -5,7 +5,7 @@ import sys
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),"..", "..")))
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 
 # ----- SCHEMAS POUR UTILISATEUR -----
@@ -54,6 +54,5 @@ class UserResponse(BaseModel):
     role_user: str
     is_active: bool
     
-    class Config:
-        from_attributes = True  # Permet à Pydantic de lire les données directement à partir d'un objet ORM 
-                                 # afin qu'on ait pas besoin de tout convertir à la main(dict ou autre)
+    model_config = ConfigDict(from_attributes=True)  # Permet à Pydantic de lire les données directement à partir d'un objet ORM 
+                                                     # afin qu'on ait pas besoin de tout convertir à la main(dict ou autre)

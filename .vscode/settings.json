@@ -13,5 +13,6 @@
     "reportMissingTypeStubs": "none"
   },
   "python-envs.defaultEnvManager": "ms-python.python:venv",
-  "markdown.validate.enabled": true
+  "markdown.validate.enabled": true,
+  "python.terminal.useEnvFile": true
 }

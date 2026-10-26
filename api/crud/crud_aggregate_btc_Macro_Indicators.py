@@ -34,7 +34,7 @@ def get_bitcoin_macro_indicators_range(db: Session, start_date: date, end_date: 
                     open,
                     high,
                     low,
-                    close AS close_price,
+                    close,
                     volume,
                     market_cap,
                     rate_mro,

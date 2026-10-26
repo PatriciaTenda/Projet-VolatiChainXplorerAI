@@ -10,7 +10,7 @@ from database.conn_db.connect_postgresql import get_db
 from database.postgres.models.users import Users
 
 # Sécurité HTTP Bearer (pour récupérer le token des headers)
-security = HTTPBearer()
+security = HTTPBearer(auto_error=False)
 
 #=========================================================================================================================================
 
@@ -19,16 +19,25 @@ def get_current_user(
     db: Annotated[Session, Depends(get_db)]
 ):
     """Dépendance pour récupérer l'utilisateur actuel"""
-    try:
-        token = credentials.credentials
-        user = AuthService.get_current_user(db, token)
-        return user
-    except ValidationError as e:
+    
+    if credentials is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=e.message,
-            headers={"WWW-Authenticate": "Bearer"}
+            detail="Authentification requise",
+            headers={"WWW-Authenticate": "Bearer"},
         )
+
+    try:
+        
+        token = credentials.credentials
+        return AuthService.get_current_user(db, token)
+
+    except ValidationError as error:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=error.message,
+            headers={"WWW-Authenticate": "Bearer"},
+        ) from error
 
 #=========================================================================================================================================
 
@@ -48,7 +57,7 @@ def require_admin(current_user : Annotated[Users, Depends(get_current_active_use
     if current_user.role_user != "admin":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Droits administrateur requis"
+            detail="Droits administrateur requis."
         )
     return current_user
 
@@ -59,6 +68,6 @@ def require_user_or_admin(current_user : Annotated[Users, Depends(get_current_ac
     if current_user.role_user not in ["user", "admin"]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Droits insuffisants"
+            detail="Droits insuffisants."
         )
     return current_user

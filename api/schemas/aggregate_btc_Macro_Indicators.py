@@ -6,7 +6,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),"..", "..
 
 from datetime import date
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class BitcoinMacroIndicatorsResponse(BaseModel):
@@ -22,12 +22,16 @@ class BitcoinMacroIndicatorsResponse(BaseModel):
         monetary_m3_rate (float | None) : Taux de variation de la masse monétaire M3.
     """
     day: date
-    close_price: float | None
+    open: float | None
+    high: float | None
+    low: float | None
+    close: float | None
+    volume: float | None
+    market_cap: float | None
     rate_mro: float | None
     inflation_rate: float | None
     unemployment_rate: float | None
     monetary_m3_rate: float | None
 
-    class Config:
-        from_attributes = True   # Permet à Pydantic de lire les données directement à partir d'un objet ORM 
-                                # afin qu'on n'ait pas besoin de tout convertir à la main(dict ou autre)
+    model_config = ConfigDict(from_attributes=True)   # Permet à Pydantic de lire les données directement à partir d'un objet ORM 
+                                                      # afin qu'on n'ait pas besoin de tout convertir à la main(dict ou autre)

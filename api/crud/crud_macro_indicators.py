@@ -26,7 +26,6 @@ from setup.logger_config import setup_logger
 name_file = os.path.splitext(os.path.basename(__file__))[0]
 logger = setup_logger(name_file)
 
-
 # ----------- MRO -----------
 
 def get_mro_rates_by_date_range(db: Session, start_date: date, end_date: date):
@@ -41,8 +40,13 @@ def get_mro_rates_by_date_range(db: Session, start_date: date, end_date: date):
     Returns:
         list[MacroBceMRO]: Liste des taux MRO dans la plage de dates.
 
+            status_code=400,
+            detail="Les dates ne sont pas valides."
+        )
+    from fastapi import HTTPException
     Raises:
         ValidationError: Si les dates ne sont pas valides.
+        HTTPException: Si les dates ne sont pas valides.
     """
     if start_date > end_date:
         raise ValidationError(
@@ -111,7 +115,6 @@ def get_all_inflation_rates(db: Session, skip: int, limit: int):
             .limit(limit)
             .all()
         )
-
        
     except SQLAlchemyError:
         logger.exception(
@@ -119,17 +122,7 @@ def get_all_inflation_rates(db: Session, skip: int, limit: int):
         )
         raise DatabaseError(operation="get_all_inflation_rates")
     
-    # 3. Logger le résultat
-    if inflation_rate:
-        logger.info("%d taux d'inflation trouvés (skip=%d, limit=%d).",
-                    len(inflation_rate), skip, limit)
-    else:
-        logger.warning(
-            "Aucun taux d'inflation trouvé (skip=%d, limit=%d).",
-            skip, limit
-        )
-    return inflation_rate
-    
+       
     # 3. Logger le résultat et retourner les données
     if not inflation_rate:
         logger.warning(
