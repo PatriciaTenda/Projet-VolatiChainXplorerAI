@@ -14,7 +14,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".
 
 from datetime import date
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict;
 
 
 class BtcIndicatorsArticlesResponse(BaseModel):
@@ -25,10 +25,11 @@ class BtcIndicatorsArticlesResponse(BaseModel):
     unemployment_rate: float | None
     monetary_m3_rate: float | None
    
-    class Config:
-            from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class CorrelatedResponse(BaseModel):
     article_count: int
     results: list[BtcIndicatorsArticlesResponse]
+
+    model_config = ConfigDict(from_attributes=True)

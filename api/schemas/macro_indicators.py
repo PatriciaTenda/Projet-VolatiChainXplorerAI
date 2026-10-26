@@ -6,7 +6,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),"..", "..
 
 from datetime import date
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 # --- MRO ---
@@ -29,8 +29,7 @@ class MroResponse(BaseModel):
     indicator_name_mro: str | None
     source_label_mro: str | None
 
-    class Config:
-        from_attributes = True   
+    model_config = ConfigDict(from_attributes=True)   
         
         
 class MroDailyResponse(BaseModel):
@@ -38,8 +37,7 @@ class MroDailyResponse(BaseModel):
 
     date_mro: date
     rate_mro: float | None
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 # --- INFLATION ---
 class InflationResponse(BaseModel):
@@ -61,9 +59,8 @@ class InflationResponse(BaseModel):
     indicator_name_inflation: str | None
     source_label_inflation: str | None
 
-    class Config:
-        from_attributes = True # Permet à Pydantic de lire les données directement à partir d'un objet ORM 
-                               # afin qu'on ait pas besoin de tout convertir à la main(dict ou autre)
+    model_config = ConfigDict(from_attributes=True) # Permet à Pydantic de lire les données directement à partir d'un objet ORM 
+                                                    # afin qu'on ait pas besoin de tout convertir à la main(dict ou autre)
 
 # --- TAUX DE CHÔMAGE ---
 class UnemploymentResponse(BaseModel):
@@ -83,9 +80,8 @@ class UnemploymentResponse(BaseModel):
     indicator_name_unemployment: str | None
     source_label_unemployment: str | None
 
-    class Config:
-        from_attributes = True # Permet à Pydantic de lire les données directement à partir d'un objet ORM 
-                        # afin qu'on ait pas besoin de tout convertir à la main(dict ou autre)
+    model_config = ConfigDict(from_attributes=True) # Permet à Pydantic de lire les données directement à partir d'un objet ORM 
+                                                    # afin qu'on ait pas besoin de tout convertir à la main(dict ou autre)
 
 # --- MASSE MONÉTAIRE M3 ---
 class MonetaryM3Response(BaseModel):
@@ -105,9 +101,8 @@ class MonetaryM3Response(BaseModel):
     indicator_name_m3: str | None
     source_label_m3: str | None
 
-    class Config:
-        from_attributes = True # Permet à Pydantic de lire les données directement à partir d'un objet ORM 
-                               # afin qu'on ait pas besoin de tout convertir à la main(dict ou autre)
+    model_config = ConfigDict(from_attributes=True) # Permet à Pydantic de lire les données directement à partir d'un objet ORM 
+                                                    # afin qu'on ait pas besoin de tout convertir à la main(dict ou autre)
                         
                         
 # --- INDICATEUR MACROECONOMIQUE ---
@@ -129,6 +124,5 @@ class MacroIndicatorsResponse(BaseModel):
     unemployment_rate: float | None
     monetary_m3_rate: float | None
 
-    class Config:
-        from_attributes = True  # Permet à Pydantic de lire les données directement à partir d'un objet ORM 
-                         # afin qu'on ait pas besoin de tout convertir à la main(dict ou autre)
+    model_config = ConfigDict(from_attributes=True) # Permet à Pydantic de lire les données directement à partir d'un objet ORM 
+                                                    # afin qu'on ait pas besoin de tout convertir à la main(dict ou autre)

@@ -213,3 +213,8 @@ __pycache__/
 
 # api inference environment
 .venv_api_inference/
+
+# Coverage and test reports
+.coverage
+htmlcov/
+.pytest_cache/

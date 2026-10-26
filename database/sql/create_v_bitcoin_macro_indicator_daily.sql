@@ -1,6 +1,7 @@
-CREATE OR REPLACE VIEW public.v_bitcoin_macro_indicator_daily AS
-SELECT
-    btc.date AS day,
+-- public.v_bitcoin_macro_indicator_daily source
+
+CREATE OR REPLACE VIEW public.v_bitcoin_macro_indicator_daily
+AS SELECT btc.date AS day,
     btc.open,
     btc.high,
     btc.low,
@@ -11,6 +12,5 @@ SELECT
     macro.inflation_rate,
     macro.unemployment_rate,
     macro.monetary_m3_rate
-FROM public.t_bitcoin_prices AS btc
-LEFT JOIN public.v_macro_indicators_daily_v1 AS macro
-    ON macro.date = btc.date;
+   FROM t_bitcoin_prices btc
+     LEFT JOIN v_macro_indicators_daily_v1 macro ON macro.date = btc.date;

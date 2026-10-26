@@ -46,7 +46,7 @@ SessionLocal= sessionmaker(bind=engine, autoflush=False, autocommit=False)
 
 def get_db():
    logger.info("Début de connexion à la base de données postgresql.")
-   db: Session= SessionLocal()
+   db: Session = SessionLocal()
    try:
         yield db
    except Exception as e:

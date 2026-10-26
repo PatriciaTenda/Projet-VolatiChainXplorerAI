@@ -5,7 +5,7 @@ import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),"..", "..")))
 from datetime import date
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 # Modèle Pydantic pour la réponse de l'API (ce qui sera renvoyé en JSON)
 # C'est la représentation de votre TBitcoinPrice en JSON
@@ -33,6 +33,5 @@ class BitcoinPriceResponse(BaseModel):
     volume: float | None
     market_cap: float | None
 
-    class Config:
-        from_attributes = True # Permet à Pydantic de lire les données directement à partir d'un objet ORM 
-                        # afin qu'on ait pas besoin de tout convertir à la main(dict ou autre)
+    model_config = ConfigDict(from_attributes=True) # Permet à Pydantic de lire les données directement à partir d'un objet ORM 
+                                                    # afin qu'on ait pas besoin de tout convertir à la main(dict ou autre)
