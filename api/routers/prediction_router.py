@@ -1,5 +1,6 @@
 # Charger les bibliothèques nécessaires
 import sys
+from datetime import date
 from pathlib import Path
 from typing import Annotated
 
@@ -7,6 +8,12 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from api.auths.dependencies import require_user_or_admin
+from api.monitoring.metrics import (
+    INPUT_DATA_AGE_DAYS,
+    PREDICTED_VOLATILITY,
+    PREDICTION_DURATION,
+    PREDICTION_REQUESTS_TOTAL,
+)
 from api.schemas.prediction import (
     VolatilityPredictionRequest,
     VolatilityPredictionResponse,
@@ -71,6 +78,7 @@ def get_volatility_prediction(
             "Horizon invalide : %s",
             horizon_days
         )
+        
         raise HTTPException(
             status_code= 400,
             detail="Horizon invalide. Les valeurs acceptées sont 7 ou 30 jours."
@@ -118,13 +126,24 @@ def get_latest_volatility_prediction(
     """
         Prédire la volatilité à partir des dernières données disponibles.
     """
-
+    # Définir les variables qui servent à préparer les valeurs qui seront associées au label de Prometheus
+    route_name = "latest"
+    horizon_label = str(horizon_days)
+        
     # Vérifier que l’horizon demandé est autorisé
     if horizon_days not in [7, 30]:
         logger.error(
             "Horizon invalide : %s",
             horizon_days,
         )
+        
+        # Incrémenter le compteur de requêtes de prédiction avec le statut "invalid_horizon"
+        PREDICTION_REQUESTS_TOTAL.labels(
+            route=route_name,
+            horizon=horizon_label,
+            status="invalid_horizon"
+        ).inc()
+
         raise HTTPException(
             status_code=400,
             detail=(
@@ -134,18 +153,46 @@ def get_latest_volatility_prediction(
         )
 
     try:
-        # Préparer automatiquement les 15 variables
-        features, features_date = prepare_features_for_prediction(db)
+        # Mesurer la préparation et la prédiction de la volatilité
+        with PREDICTION_DURATION.labels(
+            route=route_name,
+            horizon=horizon_label
+        ).time():
+            # Préparer automatiquement les 15 variables
+            features, features_date = prepare_features_for_prediction(db)
 
-        # Effectuer la prédiction
-        result = predict_volatility(
-            features,
-            horizon_days,
+            # Effectuer la prédiction
+            result = predict_volatility(
+                features,
+                horizon_days,
+            )
+        # Enregistrer la valeur prédite
+        PREDICTED_VOLATILITY.labels(
+            horizon=horizon_label            
+        ).observe(
+            result["predicted_volatility"]
         )
-
+        
+        # Calculer l'ancienneté des données utilisées
+        data_age_days = (
+            date.today() - features_date
+        ).days
+        
+        
+        INPUT_DATA_AGE_DAYS.labels(
+            horizon=horizon_label
+        ).set(data_age_days)
+        
+        # compter les prédiction reussies
+        PREDICTION_REQUESTS_TOTAL.labels(
+            route=route_name,
+            horizon=horizon_label,
+            status="success"
+        ).inc()
+        
         # Ajouter la date des données utilisées
-        result["data_date"] = features_date
-
+        result["data_date"] = features_date       
+        
         logger.info(
             "Prédiction à %s jours réalisée avec les données du %s.",
             horizon_days,
@@ -159,6 +206,14 @@ def get_latest_volatility_prediction(
             "Données insuffisantes pour la prédiction : %s",
             error,
         )
+        
+        # Compter les requêtes de prédiction échouées en raison d'une indisponibilité de données
+        PREDICTION_REQUESTS_TOTAL.labels(
+            route=route_name,
+            horizon=horizon_label,
+            status="data_error"
+        ).inc()
+        
         raise HTTPException(
             status_code=400,
             detail="Aucune donnée disponible pour la prédiction.",
@@ -168,6 +223,14 @@ def get_latest_volatility_prediction(
         logger.exception(
             "Erreur pendant la prédiction automatique."
         )
+        
+        # Compter les requêtes de prédiction échouées en raison d'une erreur interne
+        PREDICTION_REQUESTS_TOTAL.labels(
+            route=route_name,
+            horizon=horizon_label,
+            status="error"
+        ).inc()
+        
         raise HTTPException(
             status_code=500,
             detail=(

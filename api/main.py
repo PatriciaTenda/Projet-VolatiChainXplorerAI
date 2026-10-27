@@ -5,7 +5,10 @@
     - Accéder à l'historique des cours du Bitcoin
     - Obtenir les différents taux de la Banque Centrale Européenne
     - Authentifier et gérer l'accès à l'API via un endpoint dédié
-    L'objectif est de faciliter l'exploration, l'analyse et l'intégration de ces données pour les développeurs et utilisateurs finaux.
+    - Obtenir les prédictions de volatilité du Bitcoin à 7 et 30 jours
+    - Obtenir les métriques Prometheus pour le monitoring des prédictions de volatilité du Bitcoin
+    - Surveiller les prédictions de volatilité du Bitcoin avec Prometheus via un endpoint dédié
+    L'objectif est de faciliter l'exploration, l'analyse, l'intégration de ces données et des prédictions associées pour les développeurs et utilisateurs finaux.
 """
 
 
@@ -31,6 +34,7 @@ from api.routers.correlated_btc_rates_articlesFi_router import (
 )
 from api.routers.delete_user_account_router import router as deleted_user_router
 from api.routers.macro_indicators_router import router as macro_indicators_router
+from api.routers.monitoring_router import router as monitoring_router
 from api.routers.prediction_router import router as prediction_router
 from database.conn_db.connect_mongodb import MONGO_DB, URI
 from database.conn_db.connect_postgresql import engine
@@ -51,7 +55,8 @@ app = FastAPI(
         "-  Gestion centralisée des erreurs personnalisées\n"
         "-  Restitution des données **PostgreSQL** et **MongoDB**\n"
         "-  Prêt pour intégration dans des dashboards ou outils d'analyse IA\n"
-        "-  Prédictions de la volatilité du Bitcoin à 7 et 30 jours\n\n"
+        "-  Prédictions de la volatilité du Bitcoin à 7 et 30 jours\n"
+        "-  Monitoring des prédictions de volatilité avec Prometheus\n\n"
         
         "**Aperçu rapide des routes principales :**\n"
         "-  `/api/v1/bitcoin-prices` : Prix journaliers du Bitcoin (PostgreSQL)\n"
@@ -60,7 +65,8 @@ app = FastAPI(
         "-  `/api/v1/correlated-btc-rates-articlesFi` : Données croisées entre les cours du Bitcoin, les indicateurs macroéconomiques et les articles financiers\n"
         "-  `/api/v1/auth` : Authentification et gestion des utilisateurs\n"
         "-  `/api/v1/delete-user-account` : Suppression du compte utilisateur\n"
-        "-  `/api/v1/bitcoin/volatility/predictions` : Prédictions de la volatilité du Bitcoin"
+        "-  `/api/v1/bitcoin/volatility/predictions` : Prédictions de la volatilité du Bitcoin\n"
+        "-  `/api/v1/bitcoin/volatility/predictions/metrics` : Métriques Prometheus pour le monitoring des prédictions"
     ),
     version="1.0.0"
 )
@@ -68,6 +74,7 @@ app = FastAPI(
 
 # Inclure les routes
 app.include_router(router)      # Routes d'authentification
+
 # Page d'accueil de l'API
 @app.get("/", tags=["Home Page"])
 def welcome():
@@ -131,6 +138,9 @@ app.include_router(prediction_router)
 
 # Supprimer le compte d'un utilisateur
 app.include_router(deleted_user_router)
+
+# Monitoring des prédictions de volatilité avec Prometheus
+app.include_router(monitoring_router)
 
 
 # Endpoint du controle de l'état de l'API
