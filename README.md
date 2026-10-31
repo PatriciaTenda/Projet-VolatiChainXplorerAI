@@ -1,701 +1,264 @@
-# Projet-VolatiChainXplorerAI
-VolatiChainXplorer AI est un projet d'analyse de la volatilité du Bitcoin basé sur la collecte de données multi-sources (API, CSV, articles, réseaux sociaux). Les données sont stockées dans PostgreSQL (prix Bitcoin + indicateurs macro-économiques BCE) et MongoDB (articles financiers) et exposées via une API FastAPI pour des analyses sémantiques et prédictives.
+# VolatiChainXplorerAI
 
-**Statut actuel (Dernière mise à jour : 2026-09-10) :**
-- ✅ Base PostgreSQL structurée avec tables Bitcoin et indicateurs macro (MRO, Inflation, Chômage, M3)
-- ✅ Vue unifiée `v_macro_indicators_daily_v1` pour jointures temporelles (daily × monthly)
-- ✅ Données Bitcoin enrichies (2010-2026) avec support multi-sources
-- ✅ Scripts de collecte, nettoyage et injection opérationnels
-- ✅ Migrations Alembic appliquées et documentées
-- 🔄 API FastAPI en cours de développement
+<p align="center">
+  <img src="frontend/images/Logo_VolatiChainXplorerAI.png" alt="VolatiChainXplorerAI" width="220" />
+</p>
 
-# Les sources de données
-     https://www.coingecko.com/en/api
-     https://coinmarketcap.com/currencies/bitcoin/historical-data/
-     https://github.com/ranaroussi/yfinance
-     https://www.reddit.com/dev/api/
-     https://sdw.ecb.europa.eu/             # Pour les articles
-     https://data-api.ecb.europa.eu/        # Pour les indicateurs macroéconomiques
-     https://cryptoast.fr                   # Pour les articles
+<div align="center">
+  <strong>Data engineering + market intelligence for Bitcoin volatility</strong>
+</div>
 
-# Historique du projet
+VolatiChainXplorerAI est un projet de data engineering et d’analyse de marché appliqué au Bitcoin. Son objectif est de collecter, structurer et croiser des données issues de plusieurs sources — prix historiques, indicateurs macroéconomiques, articles financiers et signaux de marché — afin de fournir une base exploitable pour l’analyse, la recherche et la prédiction de la volatilité du Bitcoin.
 
-## Changelog
+## Vision du projet
 
-###  Juin 2026 - Phase 2 : Restructuration et enrichissement de la base de données
+Le projet combine trois dimensions clés :
 
-**05/06/2026**
-- ✅ Migration `ccb59cb90494` : Correction du problème d'auto-incrémentation de la colonne id
-- ✅ Création du script `concatenate_bitcoin_csvs.py` pour fusion des CSV Bitcoin
-- ✅ Enrichissement de la table t_bitcoin_prices avec données 2010-2026 (5800+ lignes)
-- ✅ Documentation complète du README avec structure BDD et workflow
+1. Collecte et préparation de données financières et macroéconomiques
+2. Stockage robuste et évolutif dans PostgreSQL et MongoDB
+3. Exploitation via une API FastAPI et des services de prédiction de volatilité
 
-**02/06/2026**
-- ✅ Migration `c24e71c09ba3` : Refonte complète de t_bitcoin_prices
-  - Support multi-sources (CoinMarketCap, CoinGecko, Kraken)
-  - Types Numeric pour précision financière
-  - Contrainte d'unicité composite : (date, source, currency, granularity)
-- ✅ Migration `325ae849c379` : Standardisation des 4 tables macro-économiques BCE
-  - Ajout colonne obs_status
-  - Création vue v_macro_indicators_daily_v1 avec DATE_TRUNC
-  - Alignement temporel daily/monthly pour ML
-- ✅ Scripts de nettoyage modernisés (pandas 2.0, pathlib, context managers)
+L’objectif est de créer une plateforme technique lisible, modulaire et extensible, adaptée à la recherche, au benchmarking et à la démonstration de solutions IA appliquées à la finance.
 
-###  Juin 2025 - Phase 1 : Initialisation du projet
+## État du projet
 
-**26/06/2025**
-- ✅ Migration `daa38defa7ad` : Renommage password_user → hashed_password (sécurité)
-- ✅ Migration `c417baba77db` : Ajout du champ role_user dans t_users
+Le projet est aujourd’hui à un stade fonctionnel avancé, avec les éléments suivants déjà opérationnels :
 
-**16/06/2025**
-- ✅ Migration `a35097d1ed2f` : Création initiale des tables macro et Bitcoin
-- ✅ Configuration Docker PostgreSQL + MongoDB
-- ✅ Scripts de collecte BCE (MRO, Inflation, Chômage, M3)
-- ✅ Scripts de scraping articles financiers (Cryptoast)
-- ✅ Structure du projet établie
+- ✅ Collecte de données multi-sources (Bitcoin, macroéconomie, articles financiers)
+- ✅ Base PostgreSQL structurée pour les prix BTC et les indicateurs macroéconomiques
+- ✅ Base MongoDB configurable pour le stockage des contenus financiers
+- ✅ API FastAPI modulaire, documentée et exploitable
+- ✅ Prédictions de volatilité du Bitcoin à 7 et 30 jours
+- ✅ Monitoring avec Prometheus, Grafana et Alertmanager
+- ✅ Scripts de nettoyage, injection et mise à jour des données
+- ✅ Tests automatisés sur l’API, les routes de prédiction et le monitoring
+- ✅ Documentation technique et benchmark AutoML dans le dossier `docs/`
+- ⚠️ Front-end non finalisé : le dépôt contient des ressources visuelles et de branding, mais pas encore une interface web complète
 
+## Stack technique
 
-# Structure du projet 
-```bash
-PROJET-VOLATICHAINXPLORERAI/
-│
-├── alembic/                             ← Fichiers de migration PostgreSQL (générés par Alembic)
-│   └── versions/                        ← Migrations appliquées :
-│       ├── c24e71c09ba3_refactor_bitcoin_prices_table_structure.py
-│       ├── 325ae849c379_update_macro_tables_standardize_columns_.py
-│       └── ccb59cb90494_fix_bitcoin_prices_id_sequence.py
-│
-├── api/                                 ← Backend FastAPI
-│   ├── auths/                           ← Gestion de l'authentification (routes sécurisées)
-│   ├── routers/                         ← Routes de l’API
-│   └── main.py                          ← Point d’entrée de l’application FastAPI
-│
-├── data/                                ← Données brutes ou transformées
-│   ├── cleaned/                         ← Données nettoyées prêtes pour injection
-│   │   ├── bitcoin_historical_cleaned_updated.csv  ← CSV Bitcoin consolidé (2010-2026)
-│   │   ├── bce_mro_cleaned.csv
-│   │   ├── HICP_Inflation_cleaned.csv
-│   │   ├── Monetary_aggregate_M3_cleaned.csv
-│   │   └── unemployment_rate_cleaned.csv
+- Python 3.12+
+- FastAPI pour l’API REST
+- SQLAlchemy pour l’accès aux données PostgreSQL
+- MongoDB pour les contenus financiers et textuels
+- PostgreSQL pour les données structurées et historiques
+- Alembic pour les migrations de schéma
+- Docker / Docker Compose pour l’infrastructure locale
+- Prometheus + Grafana + Alertmanager pour le monitoring
+- Pytest pour les tests automatisés
+- Pandas / NumPy pour la préparation des données
+
+## Fonctionnalités clés
+
+### 1) Collecte et ingestion de données
+
+Le projet collecte des données depuis plusieurs sources, notamment :
+
+- CoinGecko, CoinMarketCap et yFinance pour les prix historiques du Bitcoin
+- Données macroéconomiques de la BCE : MRO, inflation, chômage et M3
+- Articles financiers et contenus de presse spécialisés
+- Scripts d’injection et de mise à jour vers PostgreSQL et MongoDB
+
+### 2) Base de données
+
+Le projet organise les données dans plusieurs modèles et schémas dédiés :
+
+- `database/postgres/models/bitcoin_prices.py`
+- `database/postgres/models/macro_indicators.py`
+- `database/postgres/models/users.py`
+- Tables et vues PostgreSQL pour l’analyse temporelle et les jointures
+
+### 3) API REST
+
+L’application FastAPI exposée dans `api/main.py` permet notamment de :
+
+- consulter les prix historiques du Bitcoin
+- accéder aux indicateurs macroéconomiques de la BCE
+- lire les articles financiers stockés dans MongoDB
+- combiner les données BTC + macro + articles
+- authentifier les utilisateurs
+- supprimer un compte utilisateur
+- obtenir des prédictions de volatilité à 7 et 30 jours
+- surveiller les métriques de prédiction via Prometheus
+
+### 4) Prédiction de volatilité
+
+Le backend intègre des services de préparation des features et de prédiction pour deux horizons :
+
+- 7 jours
+- 30 jours
+
+Les routes de prédiction sont sécurisées et exposent des métriques de monitoring pour suivre les performances et les erreurs.
+
+### 5) Monitoring et observabilité
+
+Le projet embarque :
+
+- Prometheus pour la collecte des métriques
+- Grafana pour la visualisation
+- Alertmanager pour la gestion des alertes
+- Endpoint `/metrics` pour exposer les métriques de prédiction
+
+## Architecture du dépôt
+
+```text
+Projet-VolatiChainXplorerAI/
+├── api/                          # API FastAPI, routers, services, auth, schemas
+│   ├── auths/
+│   ├── crud/
+│   ├── routers/
+│   ├── schemas/
+│   ├── services/
+│   ├── main.py
+│   └── README_API.md
+├── database/                    # Connexions aux bases et modèles SQLAlchemy
+│   ├── conn_db/
+│   ├── mongo/
+│   └── postgres/
+├── data/                        # Données brutes, nettoyées et exportées
 │   ├── raw/
-│   │   ├── articles_financiers/         ← Articles scrappés (.json)
-│   │   ├── logs/                        ← Fichiers logs (.log)
-│   │   └── csvFile/                     ← Fichiers csv bruts (.csv)
-│   └── exports/                         ← Exports et backups
-│            
-├── database/                            ← Connexion et structure des bases de données
-│   ├── conn_db/                         ← Scripts de connexion
-│   │   ├── connect_mongodb.py
-│   │   ├── connect_postgresql.py
-│   │   └── __init__.py
-│   │
-│   ├── mongo/                           ← Scripts MongoDB
-│   │   ├── create_collections.py
-│   │   └── __init__.py
-│   │
-│   └── postgres/                        ← Définition des tables et schémas PostgreSQL
-│       ├── models/
-│       │   ├── bitcoin_prices.py
-│       │   ├── macro_indicators.py
-│       │   ├── users.py
-│       │   └── __init__.py
-│       └── schemas/
-│           ├── bitcoin_prices.py
-│           ├── macro_indicators.py
-│           ├── users.py
-│           └── __init__.py
-│
-├── env/                                 ← Environnement virtuel local (non versionner)
-│
-├── notebooks/                           ← Analyses exploratoires & tests en Jupyter Notebook
-│
-├── scripts/                             ← Scripts de traitement, collecte, injection 
-│   ├── collect/                         ← Scripts de collecte (scraping/API)
-│   │   ├── collect_btc_api_coingecko.py
-│   │   ├── collect_btc_api_kraken.py
-│   │   ├── Collect_btc_api_yfinance.py
-│   │   ├── download_bce_HICP_Inflation.py
-│   │   ├── download_bce_mro.py
-│   │   ├── download_Monetary_aggregate_M3.py
-│   │   ├── download_unemployment_rate.py
-│   │   ├── scrape_crypttoast_article_financier.py
-│   │   ├── scrape_twitter_api.py
-│   │   └── scrape_twitter.py
-│
-│   ├── clean/                           ← Préparation et nettoyage des datasets
-│   │   ├── cleaned_Bitcoin_historical_data.py
-│   │   ├── cleaned_HICP_inflation_data.py
-│   │   ├── cleaned_Monetary_aggregate_M3.py
-│   │   ├── cleaned_MRO.py
-│   │   ├── cleaned_unemployment_rate_data.py
-│   │   └── concatenate_bitcoin_csvs.py  ← Fusion des CSV Bitcoin historique + complément
-│
-│   ├── injection_db_mongo/             ← Insertion dans MongoDB
-│   │   ├── injection_articles_financiers.py
-│   │   ├── injection_logs.py
-│   │   └── __init__.py
-│
-│   ├── injection_db_postgres/          ← Insertion dans PostgreSQL
-│   │   ├── injection_data_aggregate_M3.py
-│   │   ├── injection_data_btcoin.py
-│   │   ├── injection_data_Inflation.py
-│   │   ├── injection_data_mro.py
-│   │   ├── injection_data_unemployment.py
-│   │   └── __init__.py
-│
-│   └── update/                         ← Scripts de mise à jour conditionnelle
-│       ├── update_or_insert.py
-│       └── __init__.py
-│
-├── setup/                               ← Configuration & automation
-│   ├── logger_config.py                 ← Logger Python centralisé
-│   ├── run_mongo.sh                     ← Script de lancement Docker MongoDB
-│   ├── run_postgres.sh                  ← Script de lancement Docker PostgreSQL
-│   └── __init__.py
-│
-├── .env                                 ← Variables d’environnement (pas versionner)
-├── .gitignore                           ← Exclusions Git (env/, __pycache__/, .env, etc.)
-├── alembic.ini                          ← Config Alembic
-├── docker-compose.yaml                  ← Déploiement multi-conteneurs Docker
-├── Dockerfile                           ← Image Docker de l'app FastAPI
-├── requirements.txt                     ← Dépendances Python du projet
-└── README.md                            ← Documentation principale du projet
-
-```
-# Installations des librairies
-##  Librairies Python utilisées
-
-- **Python 3.12** : Version recommandée pour garantir la compatibilité avec les bibliothèques utilisées.
-
-### Utilitaires
-- `requests` : Requêtes HTTP pour récupérer des données depuis des APIs.
-- `pandas` : Manipulation et analyse de données tabulaires.
-- `dateparser` : Parsing intelligent des dates en différents formats.
-- `python-slugify` : Génère des noms de fichiers "propres" (slugs) à partir de chaînes de caractères.
-
-### Extraction de données financières
-- `pycoingecko` : Accès facile à l’API publique CoinGecko.
-- `yfinance` : Téléchargement des données boursières (Yahoo Finance).
-
-### Scraping web et réseaux sociaux
-- `lxml` : Parser HTML/XML performant (utilisé avec BeautifulSoup).
-- `beautifulsoup4` : Librairie de web scraping pour extraire le contenu HTML.
-- `html5lib` : Parser HTML alternatif compatible avec BeautifulSoup.
-- `tweepy` : Client officiel de l’API Twitter/X.
-- `snscrape` : Scraping de Twitter/X sans API (pratique sans authentification).
-
-### PostgreSQL & ORM
-- `SQLAlchemy` : ORM pour interagir avec une base PostgreSQL en Python.
-- `psycopg2-binary` : Driver PostgreSQL utilisé par SQLAlchemy.
-- `alembic` : Gestionnaire de migration de base de données (avec SQLAlchemy).
-
-### MongoDB
-- `pymongo` : Driver officiel pour se connecter et manipuler des bases MongoDB en Python.
-
-### API REST avec FastAPI
-- `fastapi` : Framework web moderne et rapide pour créer l’API du projet.
-- `uvicorn` : Serveur ASGI ultra-performant pour exécuter l’API FastAPI.
-- `pydantic` : Validation de données et création de schémas de requêtes/réponses pour FastAPI.
-
-### Déploiement (via Docker)
-- `docker`, `docker-compose` *(hors Python)* : Lancement des bases PostgreSQL et MongoDB dans des conteneurs.
-
-## Configuration de l'environemment du projet
-```bash
-    # Mise en place de l' environnement python 
-    py -3.12 -m venv env
-
-    # Activtion de l'environnement 
-    .\env\Scripts\activate
-
-    # Activtion du fichier requirements.txt 
-    pip freeze > requirements.txt
-``` 
-## Installation des librairies utile pour l'extraction des données
-### Librairie utiles
-```bash
-    pip install requests pandas
-    pip install dateparser # parser la date
-    pip install python-slugify # Pour formater le nom du fichier 
-``` 
-
-### Extraction via les API coingecko et Yfinance 
-```bash
-    # API  coingecko
-   pip install pycoingecko
-
-    # API  Yfinance ou 
-    pip install yfinance
-
-    # Celui_ci si on rencontre des soucis de certificats  
-    pip install --upgrade yfinance
-
-``` 
-### Extraction via le scraping web
-```bash
-    # Parser HTML pour BeautifulSoup 
-    pip install lxml
-
-    # installer beautifulsoup4
-    pip install beautifulsoup4 html5lib
-``` 
-
-### Extraction via le scraping  de X (anciennement Tweeter)
-```bash
-    # Bibliothèque pour interagir avec l'API de X 
-    pip install tweepy
-    
-    # Bibliothèque pour interagir sans API de X avec une version de python à partir de 3.11 et descandant
-    pip install git+https://github.com/JustAnotherArchivist/snscrape.git
+│   ├── cleaned/
+│   └── exports/
+├── docs/                        # Veille, benchmark, preuves sprint, documentation
+│   ├── benchmark/
+│   ├── veille/
+│   ├── preuves_by_sprint/
+│   └── readme_docs.md
+├── frontend/                    # Assets visuels et branding du projet
+│   └── images/
+├── monitoring/                  # Config Prometheus / Grafana / Alertmanager
+├── notebooks/                   # Notebooks d’analyse et prototypage
+├── scripts/                     # Collecte, nettoyage, injection, mise à jour
+│   ├── collect/
+│   ├── clean/
+│   ├── injection_db_mongo/
+│   ├── injection_db_postgres/
+│   └── update/
+├── setup/                       # Configuration globale et logging
+├── tests/                       # Tests Pytest (API, CRUD, monitoring, prédictions)
+├── .env                         # Variables d’environnement locales
+├── .gitignore
+├── alembic.ini
+├── docker-compose.yaml
+├── Dockerfile
+├── pytest.ini
+├── requirements.txt
+├── README.md
+└── ...
 ```
 
-## Configuration des bases de données POSTGRESQL et MONGODB
-### Configuration de POSTGRESQL avec DOCKER
-####  URL de connexion (avec SQLAlchemy)
+## Démarrage rapide
+
+### 1) Cloner le dépôt
+
 ```bash
-    # Format de l' URL de connexion à la base de données POSTGRESQL
-        URL = "postgresql+psycopg2://POSTGRES_USER:POSTGRES_PASSWORD@POSTGRES_HOST:POSTGRES_PORT/POSTGRES_DB"
+git clone https://github.com/PatriciaTenda/Projet-VolatiChainXplorerAI.git
+cd Projet-VolatiChainXplorerAI
 ```
-#### Étapes pour lancer PostgreSQL avec Docker
+
+### 2) Créer un environnement virtuel
+
 ```bash
-    # Télécharger l'image officielle PostgreSQL
-    docker pull postgres
-
-    # Créer un volume persistant pour PostgreSQL
-    docker volume create postgres_data
-
-    # Inspecter le volume
-    docker volume inspect postgres_data
-
-    # Lancer PostgreSQL dans un conteneur Docker
-    docker run --name VolatiChainXplorerAI_postgres \
-    -e POSTGRES_USER=$POSTGRES_USER \
-    -e POSTGRES_PASSWORD=$POSTGRES_PASSWORD \
-    -e POSTGRES_DB=$POSTGRES_DB \
-    -p 5433:5432 \
-    -v postgres_data:/var/lib/postgresql/data \
-    -d postgres
-
+python -m venv .venv
+source .venv/bin/activate      # Linux/macOS
+# ou .venv\Scripts\activate   # Windows
 ```
-####  Gestion du conteneur PostgreSQL
+
+### 3) Installer les dépendances
+
 ```bash
-    # Vérifier les conteneurs actifs
-    docker ps
-
-    # Voir tous les conteneurs (même stoppés)
-    docker ps -a
-
-    # Arrêter PostgreSQL
-    docker stop VolatiChainXplorerAI_postgres
-
-    # Redémarrer PostgreSQL
-    docker start VolatiChainXplorerAI_postgres
-
-    # Redémarrage complet (utile après un changement de config)
-    docker restart VolatiChainXplorerAI_postgres
-
-    # Voir les logs
-    docker logs VolatiChainXplorerAI_postgres
-
-    # Suivre les logs en temps réel
-    docker logs -f VolatiChainXplorerAI_postgres
+pip install -r requirements.txt
 ```
-#### Utilisation avec Docker Compose (au cas où il est utilisé)
+
+### 4) Démarrer l’infrastructure locale
+
 ```bash
-    # Lancer les services
-    docker-compose up -d
-
-    # Arrêter les services
-    -compose down
+docker compose up -d
 ```
-#### Rendre un script exécutable
+
+Cela lance :
+
+- PostgreSQL sur `localhost:5433`
+- MongoDB sur `localhost:27017`
+- Prometheus sur `localhost:9090`
+- Grafana sur `localhost:3000`
+- Alertmanager sur `localhost:9093`
+
+### 5) Lancer l’API
+
 ```bash
-   # Rendre le script exécutable une fois 
-        chmod +x setup/run_postgres.sh  #  Donne le droit de l’exécuter
-
-   # Puis à chaque lancement
-       ./database/run_postgres.sh       # Exécute le script s’il est exécutable
+uvicorn api.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-#### Installation des bibliothèques Python
-##### PostgreSQL avec SQLAlchemy et Psycopg2
+Puis ouvrir :
+
+- `http://localhost:8000/docs`
+- `http://localhost:8000/health`
+
+## API et endpoints
+
+Endpoints principaux :
+
+- `GET /` : page d’accueil de l’API
+- `GET /health` : vérification de santé de l’API et des bases
+- `GET /status` : statut de test
+- `POST /api/v1/auth/login` : authentification
+- `GET /api/v1/bitcoin-prices` : prix historiques du Bitcoin
+- `GET /api/v1/macro-indicators` : indicateurs macroéconomiques
+- `GET /api/v1/articles-financiers` : articles financiers
+- `GET /api/v1/correlated-btc-rates-articlesFi` : données croisées
+- `POST /api/v1/bitcoin/volatility/predictions/latest/7` : prédiction à 7 jours
+- `POST /api/v1/bitcoin/volatility/predictions/latest/30` : prédiction à 30 jours
+- `GET /metrics` : métriques Prometheus
+
+## Tests
+
+Le dépôt contient une suite de tests pour valider les composants critiques :
+
 ```bash
-    # Installation de SQLAlchimy
-        pip install SQLAlchemy psycopg2-binary
-```
-##### Alembic – Gestion des migrations de schéma
-```bash
-    # Installer Alembic
-    pip install alembic
-
-    # Initialiser un environnement Alembic (classique)
-    alembic init alembic
-
-    # Ou version moderne (recommandée pour pyproject.toml)
-    alembic init --template pyproject alembic 
-```
-#### Utilisation de Alembic
-```bash
-    # Créer une révision automatique
-    alembic revision --autogenerate -m "create all macro and btc tables"
-
-    # Appliquer la migration
-    alembic upgrade head
-
-    # Ajouter une nouvelle révision (ex : ajout de colonne/table)
-    alembic revision --autogenerate -m "Added account table"
-
-    # Revenir en arrière (downgrade)
-    alembic downgrade -1   # ou downgrade base
-
-    # Vérifier la version actuelle
-    alembic current
+pytest
 ```
 
-## Structure de la base de données PostgreSQL
+Les tests couvrent notamment :
 
-### Tables principales
+- vérification de l’état des services
+- routes et logique de prédiction
+- préparation des features
+- monitoring Prometheus
+- CRUD et intégration de données
 
-#### Table `t_bitcoin_prices`
-Stocke les prix historiques du Bitcoin avec support multi-sources.
+## Documentation complémentaire
 
-**Colonnes :**
-- `id` : Clé primaire auto-incrémentée
-- `date` : Date du cours (format Date)
-- `open` : Prix d'ouverture (Numeric 18,8)
-- `high` : Prix le plus haut (Numeric 18,8)
-- `low` : Prix le plus bas (Numeric 18,8)
-- `close` : Prix de clôture (Numeric 18,8)
-- `volume` : Volume des transactions (Numeric 24,8)
-- `market_cap` : Capitalisation de marché (Numeric 28,8)
-- `source` : Source des données (ex: "coinmarketcap_historical_data")
-- `currency` : Devise (ex: "EUR")
-- `granularity` : Granularité temporelle (ex: "1d")
-- `collected_at` : Date de collecte (auto-générée)
+Le projet inclut une documentation détaillée dans plusieurs dossiers :
 
-**Contrainte d'unicité :** `(date, source, currency, granularity)`
+- `docs/readme_docs.md` : vue d’ensemble de la documentation projet
+- `docs/benchmark/` : benchmark des outils AutoML et comparatifs techniques
+- `docs/veille/` : veille technologique et synthèses
+- `api/README_API.md` : documentation dédiée à l’API
+- `notebooks/` : notebooks d’analyse exploratoire
 
-**Période couverte :** 2010-07-14 à aujourd'hui
+## Roadmap
 
-#### Tables macro-économiques BCE
+Axes de progression identifiés :
 
-**Table `t_macro_bce_mro_rates`** (Taux directeur BCE)
-- `id_mro` : Clé primaire
-- `date` : Date de l'observation
-- `value` : Valeur du taux MRO
-- `obs_status` : Statut de l'observation
-- `time_period` : Période temporelle
-- `indicator_name` : Nom de l'indicateur
-- `source_label` : Label de la source
+- finalisation d’une interface web front-end dédiée
+- enrichissement des modèles de prédiction avec de nouvelles features
+- ajout de dashboards métier plus complets sur Grafana
+- automatisation accrue du workflow de collecte et de mise à jour
+- sécurisation avancée des flux d’authentification et de déploiement
 
-**Table `t_macro_hicp_inflation`** (Inflation HICP)
-- `id_inflation` : Clé primaire
-- `date` : Date de l'observation
-- `value` : Valeur de l'inflation
-- `obs_status` : Statut de l'observation
-- `time_period` : Période temporelle
-- `indicator_name` : Nom de l'indicateur
-- `source_label` : Label de la source
+## Licence et usage
 
-**Table `t_macro_unemployment_rate`** (Taux de chômage)
-- `id_unemployment` : Clé primaire
-- `date` : Date de l'observation
-- `value` : Valeur du taux de chômage
-- `obs_status` : Statut de l'observation
-- `time_period` : Période temporelle
-- `indicator_name` : Nom de l'indicateur
-- `source_label` : Label de la source
+Ce projet est conçu dans un cadre académique et de démonstration. Il peut servir de base pour des projets plus avancés de data engineering, de data science appliquée au marché crypto ou de recherche en finance quantitative.
 
-**Table `t_macro_monetary_m3`** (Agrégat monétaire M3)
-- `id_m3` : Clé primaire
-- `date` : Date de l'observation
-- `value` : Valeur du M3
-- `obs_status` : Statut de l'observation
-- `time_period` : Période temporelle
-- `indicator_name` : Nom de l'indicateur
-- `source_label` : Label de la source
+## Références
 
-### Vue `v_macro_indicators_daily_v1`
-Vue unifiée des indicateurs macro-économiques avec granularité journalière.
-
-**Fonctionnement :**
-- Utilise `DATE_TRUNC('month', date)` pour propager les valeurs mensuelles sur tous les jours du mois
-- Joint les 4 tables macro avec `FULL OUTER JOIN`
-- Filtre les données à partir du 2010-07-14 (aligné sur la date de début du Bitcoin)
-
-**Colonnes :**
-- `date` : Date journalière
-- `rate_mro` : Taux directeur BCE
-- `inflation_rate` : Taux d'inflation HICP
-- `unemployment_rate` : Taux de chômage
-- `monetary_m3_rate` : Agrégat monétaire M3
-
-**Objectif :** Faciliter les jointures avec les données Bitcoin journalières pour les analyses prédictives et le machine learning.
-
-### Bonnes pratiques appliquées
-- **Types Numeric au lieu de Float** : Garantit la précision financière (pas d'erreurs d'arrondi)
-- **Contraintes d'unicité composites** : Évite les doublons tout en supportant plusieurs sources
-- **Server defaults** : collected_at auto-généré avec `func.now()`
-- **Convention de nommage** : Python attributes ≠ SQL column names via `Column("sql_name", Type)`
-- **DATE_TRUNC pour jointures temporelles** : Propage les valeurs mensuelles sur les jours
-- **Vues pour agrégation** : Évite la duplication de données tout en facilitant les requêtes
-
-## Workflow d'enrichissement de la base de données
-
-### 1. Collecte des données brutes
-```bash
-# Télécharger les données Bitcoin (CoinMarketCap)
-# Fichier CSV manuel à placer dans data/raw/csvFile/
-
-# Télécharger les indicateurs macro (BCE)
-python scripts/collect/download_bce_mro.py
-python scripts/collect/download_bce_HICP_Inflation.py
-python scripts/collect/download_unemployment_rate.py
-python scripts/collect/download_Monetary_aggregate_M3.py
-```
-
-### 2. Nettoyage des données
-```bash
-# Nettoyer les données Bitcoin
-python scripts/clean/cleaned_Bitcoin_historical_data.py
-
-# Nettoyer les indicateurs macro
-python scripts/clean/cleaned_MRO.py
-python scripts/clean/cleaned_HICP_inflation_data.py
-python scripts/clean/cleaned_unemployment_rate_data.py
-python scripts/clean/cleaned_Monetary_aggregate_M3.py
-```
-
-### 3. Concatenation des CSV Bitcoin (si nécessaire)
-Si vous avez plusieurs CSV Bitcoin à fusionner :
-```bash
-python scripts/clean/concatenate_bitcoin_csvs.py
-```
-Ce script :
-- Fusionne les CSV historiques et compléments
-- Supprime les doublons
-- Trie par date
-- Produit `bitcoin_historical_cleaned_updated.csv`
-
-### 4. Injection dans PostgreSQL
-```bash
-# Injecter les données Bitcoin (utilise bitcoin_historical_cleaned_updated.csv)
-python scripts/injection_db_postgres/injection_data_btcoin.py
-
-# Injecter les indicateurs macro
-python scripts/injection_db_postgres/injection_data_mro.py
-python scripts/injection_db_postgres/injection_data_Inflation.py
-python scripts/injection_db_postgres/injection_data_unemployment.py
-python scripts/injection_db_postgres/injection_data_aggregate_M3.py
-```
-
-**Note :** Le script `injection_data_btcoin.py` utilise automatiquement le fichier `bitcoin_historical_cleaned_updated.csv` produit par l'étape 3.
-
-### 5. Migrations appliquées
-Les migrations Alembic suivantes ont été appliquées :
-
-**Migration 1 : `c24e71c09ba3`** - Restructuration de t_bitcoin_prices *(02/06/2026)*
-- Ajout des colonnes : source, currency, granularity, collected_at
-- Remplacement des types Float par Numeric pour la précision financière
-- Contrainte d'unicité composite : (date, source, currency, granularity)
-
-**Migration 2 : `325ae849c379`** - Standardisation des tables macro *(02/06/2026)*
-- Ajout de la colonne `obs_status` dans toutes les tables macro
-- Création de la vue `v_macro_indicators_daily_v1` avec DATE_TRUNC
-- Jointures mensuelles propagées sur les jours pour alignement avec Bitcoin
-
-**Migration 3 : `ccb59cb90494`** - Fix SEQUENCE pour t_bitcoin_prices.id *(05/06/2026)*
-- Création de la SEQUENCE `t_bitcoin_prices_id_seq`
-- Association de la SEQUENCE à la colonne id pour auto-incrémentation
-
-### 6. Vérification de l'injection
-Après l'injection, vérifiez que les données sont bien présentes :
-```python
-from database.conn_db.connect_postgresql import SessionLocal
-from database.postgres.models.bitcoin_prices import BitcoinPrices
-from sqlalchemy import text
-
-db = SessionLocal()
-
-# Vérifier le nombre de lignes Bitcoin
-count = db.query(BitcoinPrices).count()
-print(f"Nombre de lignes Bitcoin : {count}")
-
-# Vérifier la plage de dates
-first = db.query(BitcoinPrices).order_by(BitcoinPrices.date).first()
-last = db.query(BitcoinPrices).order_by(BitcoinPrices.date.desc()).first()
-print(f"Période couverte : {first.date} à {last.date}")
-
-# Tester la vue macro
-result = db.execute(text("SELECT * FROM v_macro_indicators_daily_v1 LIMIT 5;"))
-for row in result:
-    print(row)
-
-db.close()
-```
-
-### Configuration de MongoDB avec Docker
-```bash
-    # Format de l'URL de connexion MongoDB
-    # Remplacer les variables par les valeurs de ton fichier .env
-    # Definir un delai d'expiration côté client à l'aide de l' option de connexion timeoutMS
-    URI = "mongodb://MONGO_USER:MONGO_PASSWORD@localhost:MONGO_PORT/MONGO_DB?authSource=admin&serverSelectionTimeoutMS=5000"
-
-    # Extraire la dernière image MongoDB
-    docker pull mongo
-
-    # Créer un volume nommé pour la persistance des données
-    docker volume create mongo_data
-
-    # Vérifier les détails du volume
-    docker volume inspect mongo_data
-
-    # Lancer MongoDB dans un conteneur Docker
-     docker run --name mongo_VolatiChainXplorerAI \
-    -e MONGO_INITDB_ROOT_USERNAME=$MONGO_USER \
-    -e MONGO_INITDB_ROOT_PASSWORD=$MONGO_PASSWORD \
-    -e MONGO_INITDB_DATABASE=$MONGO_DB \
-    -p $MONGO_PORT:27017 \
-    -v mongo_data:/data/db \
-    -d mongo:latest
-
-    # Rendre un script exécutable (une seule fois)
-    chmod +x setup/run_mongo.sh
-
-    # Exécuter le script à chaque lancement
-    ./setup/run_mongo.sh
-```
-####  Vérification et gestion du conteneur MongoDB
-```bash
-    # Vérifier les conteneurs en cours
-    docker ps
-
-    # Voir tous les conteneurs (même stoppés)
-    docker ps -a
-
-    # Arrêter le conteneur
-    docker stop mongo_VolatiChainXplorerAI
-
-    # Démarrer le conteneur
-    docker start mongo_VolatiChainXplorerAI
-
-    # Redémarrer le conteneur
-    docker restart mongo_VolatiChainXplorerAI
-
-    # Voir les logs
-    docker logs mongo_VolatiChainXplorerAI
-
-    # Suivre les logs en temps réel
-    docker logs -f mongo_VolatiChainXplorerAI
-```
-#### Docker Compose (au cas où c'est utilisé)
-```bash
-    # Lancer les services définis dans docker-compose.yml
-    docker-compose up -d
-
-    # Arrêter tous les services
-    docker-compose down
-```
-#### Installation des bibliothèques Python interagir avec MONGODB 
-```bash
-    # Installation de pymongo
-    pip install pymongo
-```
-## Sauvegarde (Backup) des données stockées dans les bases PostgreSQL et MongoDB 
-###  PostgreSQL 
-```bash
-    # Utilise pg_dump pour exporter la base et on exécute cette ligne de commande dans le terminal 
-    #  Cela crée un fichier SQL qui pourra être restaurer plus tard avec psql
-    pg_dump -U ton_user -d nom_de_la_db > sauvegarde_postgres.sql
-
-    # Pour restaurer la base de donnée :
-        # Si la base est déja existante
-        #Cette commande exécute tous les ordres SQL contenus dans la sauvegarde
-        psql -U ton_user -d nom_de_la_db -f sauvegarde_postgres.sql
-
-        # Si elle n'est pas existante
-        # Créér d'abord une base vide
-        createdb -U ton_user nouvelle_base
-
-        # Puis, restaurer les données
-        psql -U ton_user -d nouvelle_base -f sauvegarde_postgres.sql
-```
-### MongoDB 
-```bash
-    # Utilise pg_dump pour exporter la base et on exécute cette ligne de commande dans le terminal bash
-    mongodump --db nom_de_la_db --out ./backup_mongo/
-
-    # Pour restaurer
-    mongorestore --db nom_de_la_db ./backup_mongo/nom_de_la_db
-
-```
-
-
-# Configuration de l'API
-## Schémas des entrées/sorties avec pydantic
-```bash
-    # Installation de la librairie pydantic
-        pip install pydantic
-```
-## Installation des bibliothèques Python pour l'API
-```bash
-    # Installation de la librairie fastAPI
-        pip install "fastapi[standard]"
-        pip install "uvicorn[standard]"
-
-    # Pour lancer FastAPI
-        python -m api.main  
-        uvicorn api.main:app --reload
-```
-## Installation des bibliothèques Python pour le cryptage des passwords
-```bash
-    # Installation de la librairie pour le cryptage des password en vue de la sécurisation de l'authentification sur l'API
-        pip install python-jose[cryptography] passlib[bcrypt] python-multipart
-```
+- GitHub : `https://github.com/PatriciaTenda/Projet-VolatiChainXplorerAI`
+- Documentation projet : `docs/readme_docs.md`
+- Documentation API : `api/README_API.md`
 
 ---
 
-## 📝 Maintenance de la documentation
-
-### Mise à jour du changelog
-Pour maintenir ce README à jour lors de futures modifications :
-
-1. **Après chaque migration Alembic** : Ajouter l'entrée dans la section "Migrations appliquées" avec la date
-   ```bash
-   # La date de création se trouve dans le fichier de migration
-   # Ligne : Create Date: YYYY-MM-DD HH:MM:SS
-   ```
-
-2. **Après des modifications majeures** : Mettre à jour la section "Historique du projet"
-   - Date de la modification
-   - Description concise des changements
-   - pour les tâches complétées
-   - pour les tâches en cours
-
-3. **Après injection de données** : Mettre à jour les statistiques dans "Statut actuel"
-   - Nombre de lignes
-   - Période couverte
-   - Sources disponibles
-
-4. **Mise à jour de la date "Dernière mise à jour"** : Modifier la date dans le statut en haut du document
-
-### Template pour nouvelles migrations
-```markdown
-**Migration X : `revision_id`** - Description courte *(JJ/MM/YYYY)*
-- Modification 1
-- Modification 2
-- Modification 3
-```
-
-### Template pour changelog
-```markdown
-**JJ/MM/YYYY**
-- ✅/🔄/❌ Description de l'action effectuée ou en cours
-- Détails techniques si nécessaire
-- Impact sur le projet
-```
-
----
-
-**Dernière actualisation complète du README : 2026-06-05**
-
+<p align="center">
+  <i>VolatiChainXplorerAI — turning market signals into actionable intelligence.</i>
+</p>

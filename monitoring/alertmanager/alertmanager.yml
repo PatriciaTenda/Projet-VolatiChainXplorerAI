@@ -1,0 +1,32 @@
+global:
+  resolve_timeout: 5m
+
+route:
+  receiver: "discord-alerts"
+
+  group_by:
+    - alertname
+    - service
+    - horizon
+
+  group_wait: 10s
+  group_interval: 30s
+  repeat_interval: 1h
+
+receivers:
+  - name: "discord-alerts"
+
+    discord_configs:
+      - webhook_url_file: /run/secrets/discord_webhook_url
+        send_resolved: true
+
+        title: "[{{ .Status }}] Alerte VolatiChainXplorerAI"
+
+        message: >-
+          Statut : {{ .Status }}
+
+          {{ range .Alerts }}
+          {{ .Annotations.summary }}
+          {{ .Annotations.description }}
+          Sévérité : {{ .Labels.severity }}
+          {{ end }}
