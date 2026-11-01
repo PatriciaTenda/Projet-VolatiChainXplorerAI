@@ -1,10 +1,16 @@
 # Charger les librairies nécessaires
-import os, sys
+import os
+import sys
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),"..", "..")))
 
-from database.conn_db.connect_mongodb import client, MONGO_DB
+from api.crud.crud_articles_financiers import (
+    collection_articlesFinanciers,
+    get_all_articles,
+    get_article_by_id,
+)
 from api.schemas.articles_financiers import ArticlesFinanciersResponse
-from api.crud.crud_articles_financiers import get_all_articles, get_article_by_id, collection_articlesFinanciers
+from database.conn_db.connect_mongodb import MONGO_DB, client
 from setup.logger_config import setup_logger
 
 # Mise en place d'un logger pour le module

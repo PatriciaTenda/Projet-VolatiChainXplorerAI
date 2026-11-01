@@ -14,5 +14,8 @@
   },
   "python-envs.defaultEnvManager": "ms-python.python:venv",
   "markdown.validate.enabled": true,
-  "python.terminal.useEnvFile": true
+  "python.terminal.useEnvFile": true,
+  "markdown.validate.ignoredLinks": [
+    "frontend/images/images/baniere_VolatiChainXplorerAI_V01.png"
+  ]
 }
