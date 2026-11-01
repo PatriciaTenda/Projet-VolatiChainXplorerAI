@@ -54,11 +54,25 @@ def test_temporal_split_with_purge(
     assert validation["date"].max() < pd.Timestamp("2025-01-01")
     assert test["date"].min() == pd.Timestamp("2025-01-01")
     
-# Vérifier la zone de purge avant la validation.
-    assert train["date"].max() + pd.Timedelta(days=horizon) < validation["date"].min()
-    
-# Vérifier la zone de purge avant le test.
-    assert validation["date"].max() + pd.Timedelta(days=horizon) < test["date"].min()
+    # Durée correspondant à l’horizon testé
+    purge_duration = pd.to_timedelta(
+        int(horizon),
+        unit="D",
+    )
+
+    # Vérifier la zone de purge avant la validation.
+    assert (
+        pd.Timestamp(train["date"].max())
+        + purge_duration
+        < pd.Timestamp(validation["date"].min())
+    )
+
+    # Vérifier la zone de purge avant le test.
+    assert (
+        pd.Timestamp(validation["date"].max())
+        + purge_duration
+        < pd.Timestamp(test["date"].min())
+    )
     
     
 def test_temporal_split_rejects_invalid_horizon(
