@@ -319,19 +319,17 @@ def temporal_split_with_purge(
     test_start = pd.Timestamp("2025-01-01")
     
     # Calculer les dernières dates autorisées avant les frontières
-    # Dernière date autorisée dans l'entraînement
-    train_end = (
-        validation_start - pd.Timedelta(
-            days=horizon + 1
-        )
+    # Définir explicitement la durée de purge en jours
+    purge_duration = pd.to_timedelta(
+        int(horizon) + 1,
+        unit="D",
     )
-    
+
+    # Dernière date autorisée dans l’entraînement
+    train_end = validation_start - purge_duration
+
     # Dernière date autorisée dans la validation
-    validation_end = (
-        test_start - pd.Timedelta(
-            days=horizon +1
-        )
-    )
+    validation_end = test_start - purge_duration
     
     # validation à partir du 2023-01-01
     train = (

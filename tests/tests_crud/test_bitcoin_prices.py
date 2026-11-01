@@ -1,13 +1,20 @@
 # Charger les librairies nécessaires
-import os, sys
+import os
+import sys
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),"..", "..")))
 
-from sqlalchemy.orm import Session
-from database.conn_db.connect_postgresql import SessionLocal
-from api.crud.crud_bitcoin_prices import get_all_bitcoin_prices, get_bitcoin_prices_by_date_range
+import time
 from datetime import date
+
+from sqlalchemy.orm import Session
+
+from api.crud.crud_bitcoin_prices import (
+    get_all_bitcoin_prices,
+    get_bitcoin_prices_by_date_range,
+)
+from database.conn_db.connect_postgresql import SessionLocal
 from setup.logger_config import setup_logger
-import time 
 
 # Mise en place d'un logger pour le module de création des collections
 name_file =os.path.splitext(os.path.basename(__file__))[0]
