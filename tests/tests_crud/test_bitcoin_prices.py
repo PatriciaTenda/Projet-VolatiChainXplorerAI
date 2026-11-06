@@ -40,7 +40,7 @@ def test_get_all_bitcoin_prices(skip: int=0, limit: int=5):
 
         if prices:
             first = prices[0]
-            logger.info(f"Dernier prix : {first.close_price_bitcoin} € le {first.date_bitcoin}")
+            logger.info(f"Dernier prix : {first.close_price} € le {first.date}")
 
             # Calcul du numéro de page
             page_number = (skip // limit) + 1
@@ -48,7 +48,7 @@ def test_get_all_bitcoin_prices(skip: int=0, limit: int=5):
 
             # Afficher les premiers pour vérif visuelle
             for i, p in enumerate(prices, start=skip+1):
-                logger.info(f"{i}. {p.date_bitcoin} | Open = {p.open_price_bitcoin:.2f} €, Close = {p.close_price_bitcoin:.2f} €")
+                logger.info(f"{i}. {p.date} | Open = {p.open_price:.2f} €, Close = {p.close_price:.2f} €")
         else:
             logger.warning("Aucun prix trouvé.")
     except Exception as e:
@@ -57,14 +57,14 @@ def test_get_all_bitcoin_prices(skip: int=0, limit: int=5):
     finally:
         db.close()
 
-def test_get_prices_by_date_range(start_date: date, end_date: date):
+def test_get_prices_by_date_range(start_date: date = date(2010, 7, 14), end_date: date = date(2011, 7, 14)):
     db: Session = SessionLocal()
     try:
         prices = get_bitcoin_prices_by_date_range(db, start_date, end_date)
         if prices:
             logger.info(f"Récupération des prix du {start_date} au {end_date} :")
             for p in prices:
-                logger.info(f"- {p.date_bitcoin} | Open: {p.open_price_bitcoin} € | Close: {p.close_price_bitcoin} €")
+                logger.info(f"- {p.date} | Open: {p.open_price} € | Close: {p.close_price} €")
 
         else:
             logger.info(f"Aucun prix trouvé pour la plage de date {start_date} au {end_date}")

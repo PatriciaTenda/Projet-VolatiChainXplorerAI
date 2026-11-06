@@ -1,13 +1,23 @@
 # Charger les librairies nécessaires
-import os, sys
+import os
+import sys
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),"..", "..")))
 
-from sqlalchemy.orm import Session
-from database.conn_db.connect_postgresql import SessionLocal
-from api.crud.crud_macro_indicators import get_macro_indicators_daily, get_mro_rates_by_date_range, get_all_inflation_rates, get_all_unemployment_rates, get_all_monetary_m3_rates
 import time
-from setup.logger_config import setup_logger
 from datetime import date
+
+from sqlalchemy.orm import Session
+
+from api.crud.crud_macro_indicators import (
+    get_all_inflation_rates,
+    get_all_monetary_m3_rates,
+    get_all_unemployment_rates,
+    get_macro_indicators_daily,
+    get_mro_rates_by_date_range,
+)
+from database.conn_db.connect_postgresql import SessionLocal
+from setup.logger_config import setup_logger
 
 # Mise en place d'un logger pour le module de création des collections
 name_file =os.path.splitext(os.path.basename(__file__))[0]
@@ -15,7 +25,7 @@ name_file =os.path.splitext(os.path.basename(__file__))[0]
 logger = setup_logger(name_file)
 
 #---------------TEST TAUX DIRECTEUR MRO--------------------------
-def test_get_mro(start_date : date, end_date: date):
+def test_get_mro(start_date: date = date(2020, 1, 1), end_date: date = date(2021, 1, 1)):
     db: Session = SessionLocal()
     try:
         mro_rates = get_mro_rates_by_date_range(db, start_date, end_date)
@@ -32,7 +42,7 @@ def test_get_mro(start_date : date, end_date: date):
 
 #---------------TEST TAUX D'INFLATION--------------------------
 
-def test_get_inflation(skip,limit):
+def test_get_inflation(skip: int = 0, limit: int = 5):
     db: Session = SessionLocal()
     try:
         # Délimitation du temps de début et de fin de chrono pour avoie le temps de récupération
@@ -128,7 +138,7 @@ def test_get_unemployment(skip:int=0, limit : int=5):
 
 #---------------TEST AGGREGAT DES INDICATEURS MACROeCONOMIQUES --------------------------
 
-def test_get_macro_indicators(start_date: date, end_date: date):
+def test_get_macro_indicators(start_date: date = date(2020, 1, 1), end_date: date = date(2021, 1, 1)):
     db: Session = SessionLocal()
     try:
         start = time.time()

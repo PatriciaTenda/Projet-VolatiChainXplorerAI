@@ -4,6 +4,7 @@ from pathlib import Path
 import pandas as pd
 from autogluon.tabular import TabularPredictor
 
+from api.exceptions.model_exceptions import InferenceError, ModelUnavailableError
 from setup.logger_config import setup_logger
 
 #  retrouver le chemin du projet
@@ -77,18 +78,25 @@ def predict_volatility(
         raise ValueError(
             "Horizon de prédiction non correspondant. Veuillez utiliser 7 ou 30."
         )
-        
-    # Convertir les features en tableau de données pandas pour autogluon
-    input_data = pd.DataFrame([features])
     
-    # Faire la prédiction avec le modèle choisi
-    prediction = predictor.predict(
-        input_data,
-        model = "WeightedEnsemble_L2"
-    )
-    
-    predicted_volatility = float(prediction.iloc[0])
-    
+    if predictor is None:
+        raise ModelUnavailableError(
+            f"le modèle pour l' horizon {horizon_days} n' est pas disponible."
+        )
+    try:
+        # Convertir les features en tableau de données pandas pour autogluon
+        input_data = pd.DataFrame([features])
+        # Faire la prédiction avec le modèle choisi
+        prediction = predictor.predict(
+            input_data,
+            model = "WeightedEnsemble_L2"
+        )
+        predicted_volatility = float(prediction.iloc[0])
+    except Exception as error:
+        raise InferenceError(
+            f"la prédiction à {horizon_days} jours "
+            "n’a pas pu être effectuée."
+        ) from error
     return {
         "horizon_days" : horizon_days,
         "target" : predictor.label,

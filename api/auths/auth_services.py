@@ -74,7 +74,7 @@ class AuthService:
 
         logger.info(f"Utilisateur créé avec succès : {db_user.email_user}")
         return success_response(
-            data=UserResponse.from_orm(db_user),
+            data=UserResponse.model_validate(db_user),
             message="Utilisateur créé avec succès"
         )
 

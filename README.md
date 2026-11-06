@@ -10,17 +10,111 @@
 
 ## Présentation du projet
 
-VolatiChainXplorerAI est une application d’intelligence artificielle conçue pour prédire la volatilité du Bitcoin à des horizons de 7 et 30 jours.
+VolatiChainXplorerAI est un outil intelligent consacré à la prédiction et à l’analyse de la volatilité du Bitcoin.
 
-Le projet met en œuvre une chaîne technique complète allant de la collecte des données jusqu’à la supervision des prédictions. Il combine les données historiques du Bitcoin avec plusieurs indicateurs macroéconomiques — taux MRO, inflation, chômage et masse monétaire M3 — afin de construire les variables utilisées par les modèles de machine learning.
+La vision globale du projet s’organise autour de deux grands jalons complémentaires.
 
-Les modèles de prédiction ont été sélectionnés à l’issue d’un benchmark de plusieurs solutions AutoML. AutoGluon Tabular et ses modèles `WeightedEnsemble_L2` ont été retenus pour les deux horizons étudiés.
+Le premier jalon consiste à mettre en place un système capable de prédire la volatilité du Bitcoin à des horizons de 7 et 30 jours à partir des données historiques du marché et de plusieurs indicateurs macroéconomiques.
 
-Les prédictions sont accessibles au moyen d’une API FastAPI sécurisée par authentification JWT. L’API peut préparer automatiquement les 15 variables attendues par les modèles à partir des dernières données disponibles dans PostgreSQL.
+Le second jalon consistera à développer un système d’intelligence artificielle générative capable d’analyser les prédictions produites. La solution technique pourra notamment s’appuyer sur un modèle de langage, un système RAG ou une combinaison de plusieurs approches. Elle devra permettre d’interroger les résultats en langage naturel, de les contextualiser et de restituer une analyse compréhensible de l’évolution de la volatilité.
 
-La chaîne de prédiction est supervisée avec Prometheus, Grafana et Alertmanager. Elle permet notamment de surveiller les requêtes, les erreurs, la durée des prédictions, les valeurs produites et l’ancienneté des données utilisées. Une notification Discord est envoyée lorsqu’une anomalie liée à la fraîcheur des données est détectée.
+Ce second jalon est prévu dans une phase ultérieure et ne fait pas partie du périmètre actuellement retenu pour la certification.
+Périmètre retenu pour la certification
+Afin de mobiliser les compétences attendues dans le cadre de la certification, le périmètre retenu porte sur le premier jalon : la construction d’une chaîne complète de prédiction de la volatilité du Bitcoin.
 
-Le projet est développé dans le cadre d’une certification professionnelle en développement de solutions d’intelligence artificielle. Les prédictions produites sont expérimentales et ne constituent pas des conseils financiers.
+La réalisation de ce jalon a été organisée en trois blocs progressifs.
+
+### Bloc 1 - Construction et exposition de la chaîne de données
+
+Le premier bloc a permis de construire le socle de données du projet. Il a notamment couvert :
+
+- la collecte des données historiques du Bitcoin ;
+- la collecte des indicateurs macroéconomiques ;
+- la collecte des articles financiers ;
+- le nettoyage et la transformation des données ;
+- leur stockage dans PostgreSQL et MongoDB ;
+- leur restitution au moyen d’une API FastAPI.
+
+Ce bloc a abouti à la création d’une infrastructure de données structurée, documentée et exploitable pour les étapes d’intelligence artificielle.
+
+### Bloc 2 - Recherche, sélection et mise en œuvre d’une solution d’intelligence artificielle
+
+Le deuxième bloc a porté sur l’identification, l’évaluation et l’intégration d’une solution d’intelligence artificielle préexistante adaptée au besoin de prédiction.
+
+Il a notamment compris :
+- la réalisation d’une veille technologique ;
+- l’étude de plusieurs solutions AutoML ;
+- la formalisation du besoin de prédiction à 7 et 30 jours ;
+- la création des variables explicatives et des cibles ;
+- la définition d’un protocole commun de benchmark ;
+- l’entraînement et l’évaluation de plusieurs modèles ;
+- la comparaison de leurs performances ;
+- la sélection, la sauvegarde et le chargement des modèles retenus ;
+- l’intégration des prédicteurs AutoGluon dans l’API FastAPI ;
+- la préparation automatique des 15 variables attendues par les modèles ;
+- la sécurisation des routes de prédiction au moyen d’une authentification JWT ;
+- la validation des données d’entrée et la gestion des erreurs ;
+- la mise en place de tests automatisés ;
+- la supervision de la chaîne d’inférence avec Prometheus, Grafana et Alertmanager ;
+- l’envoi de notifications d’alerte dans Discord.
+
+À l’issue du benchmark, AutoGluon Tabular et les modèles d’ensemble `WeightedEnsemble_L2` ont été retenus pour les deux horizons étudiés.
+
+Les prédicteurs ont été sauvegardés, chargés par le service d’inférence puis intégrés dans l’API du projet. Des tests de prédiction ont permis de valider leur fonctionnement pour les horizons de 7 et 30 jours.
+
+Un système de monitoring a également été mis en place afin de surveiller le fonctionnement de la chaîne de prédiction. Il permet notamment de suivre le nombre et le statut des requêtes, leur durée, les valeurs prédites et l’ancienneté des données utilisées.
+
+### Bloc 3 - Intégration du modèle dans une application et industrialisation
+
+Le troisième bloc vise à rendre la solution de prédiction accessible dans une application web complète et à industrialiser son cycle de livraison.
+
+Il comprend notamment :
+- le développement d’une interface web avec Streamlit ;
+- l’intégration des fonctionnalités d’authentification dans l’interface ;
+- la connexion de l’interface à l’API FastAPI ;
+- l’intégration des prédictions à 7 et 30 jours ;
+- la réalisation de tests d’intégration automatisés ;
+- la réalisation de tests fonctionnels et de bout en bout ;
+- le calcul et l’analyse de la couverture des tests ;
+- la vérification de l’accessibilité de l’interface ;
+- la construction et la validation des images Docker ;
+- la configuration de la chaîne CI/CD ;
+- le monitoring de l’application ;
+- la détection, l’analyse et la résolution d’un incident.
+
+
+### État actuel du projet
+
+À ce stade, les blocs 1 et 2 sont terminés.
+
+Le premier bloc a permis de construire et d’exposer la chaîne de données. Le deuxième a conduit à la sélection des prédicteurs, à leur intégration dans l’API et à la mise en place de leur supervision.
+
+Les éléments suivants sont actuellement opérationnels :
+- les modèles sont intégrés dans FastAPI ;
+- les prédictions à 7 et 30 jours sont accessibles par des routes sécurisées ;
+- les 15 variables peuvent être préparées automatiquement à partir des données stockées dans PostgreSQL ;
+- les horizons invalides, les données insuffisantes et les erreurs d’inférence sont contrôlés ;
+- 24 tests automatisés ont été exécutés avec succès ;
+- les tests fonctionnels utilisant les véritables modèles ont été validés depuis Swagger ;
+- les métriques de la chaîne d’inférence sont exposées à Prometheus ;
+- un tableau de bord Grafana permet de visualiser ces métriques ;
+- Alertmanager détecte les données de prédiction trop anciennes ;
+- les notifications d’alerte firing et resolved sont transmises dans Discord.
+Les prochaines étapes concernent principalement le troisième bloc :
+- finaliser la sécurisation et les contrats de l’API ;
+- ajouter les tests d’intégration automatisés ;
+- développer l’interface Streamlit ;
+- connecter cette interface à l’API ;
+- tester l’authentification et les prédictions depuis l’interface ;
+- réaliser les tests de bout en bout ;
+- vérifier l’accessibilité de l’application ;
+- construire les images Docker ;
+- configurer et tester la chaîne CI/CD ;
+- mettre en place le monitoring de l’application ;
+- documenter l’analyse et la résolution d’un incident.
+La partie consacrée à l’analyse intelligente des prédictions au moyen d’une solution d’intelligence artificielle générative ou d’un système RAG constitue le second jalon de la vision globale du projet. Elle sera étudiée et développée dans une programmation ultérieure, après la finalisation et l’industrialisation de la chaîne de prédiction.
+
+Le projet est réalisé dans un cadre académique et expérimental. Les prédictions produites ne constituent pas des conseils financiers et ne garantissent pas l’évolution future du marché.
 
 ## Objectifs du projet
 
@@ -79,13 +173,11 @@ Le projet couvre actuellement quatre domaines principaux.
 
 ## Vision du projet
 
-Le projet combine trois dimensions principales :
+VolatiChainXplorerAI a vocation à devenir un outil d’aide à la compréhension de la volatilité du Bitcoin.
 
-1. collecte et préparation de données financières et macroéconomiques ;
-2. stockage structuré dans PostgreSQL et MongoDB ;
-3. exploitation des données au moyen d’une API FastAPI et de modèles de prédiction de volatilité.
+Son ambition est de réunir, au sein d’une même application, deux capacités complémentaires : anticiper la volatilité du marché à partir de données financières et macroéconomiques, puis accompagner l’utilisateur dans l’interprétation des prédictions produites.
 
-L’objectif est de construire une plateforme technique lisible, modulaire et extensible, adaptée à la recherche, au benchmarking et à la démonstration de solutions d’intelligence artificielle appliquées à la finance.
+À terme, la solution devra rendre ces informations accessibles au moyen d’une interface claire et d’un système d’analyse en langage naturel, tout en conservant une architecture sécurisée, supervisée et évolutive.
 
 ## État du projet
 
@@ -147,7 +239,26 @@ Des scripts assurent ensuite :
 - leur injection dans PostgreSQL ou MongoDB ;
 - leur mise à jour.
 
-### 2. Stockage des données
+### 2. Sources et provenance des données
+
+Les données utilisées par VolatiChainXplorerAI proviennent de plusieurs sources financières et institutionnelles.
+
+| Catégorie | Source | Données utilisées | Documentation |
+|---|---|---|---|
+| Marché du Bitcoin | CoinGecko | Prix, volume et capitalisation du marché | [API CoinGecko](https://www.coingecko.com/en/api) |
+| Marché du Bitcoin | CoinMarketCap | Données historiques OHLCV et capitalisation | [Documentation CoinMarketCap](https://coinmarketcap.com/api/documentation/pro-api-reference) |
+| Marché du Bitcoin | Yahoo Finance via `yfinance` | Prix historiques et volumes du symbole `BTC-USD` | [Documentation yfinance](https://ranaroussi.github.io/yfinance/) |
+| Macroéconomie | Banque centrale européenne | Taux MRO, inflation, chômage et masse monétaire M3 | [ECB Data Portal](https://data.ecb.europa.eu/) |
+| Inflation | Banque centrale européenne | Inflation mesurée avec l’indice harmonisé des prix à la consommation | [Inflation - ECB Data Portal](https://data.ecb.europa.eu/key-figures/inflation-and-other-prices/inflation) |
+| Masse monétaire | Banque centrale européenne | Agrégat monétaire M3 de la zone euro | [Monetary aggregates — ECB Data Portal](https://data.ecb.europa.eu/key-figures/money-credit-and-banking/monetary-aggregates) |
+
+Les données Bitcoin sont harmonisées à une fréquence quotidienne avant leur rapprochement avec les indicateurs macroéconomiques.
+
+Les données macroéconomiques, dont la fréquence de publication peut être quotidienne, mensuelle ou trimestrielle, sont alignées temporellement avec les données du Bitcoin selon les règles de préparation définies dans le pipeline.
+
+Les articles financiers sont stockés séparément dans MongoDB. Ils participent à la dimension de veille et d’analyse du projet, mais ne font pas partie des 15 variables actuellement transmises aux modèles AutoGluon.
+
+### 3. Stockage des données
 
 Le projet utilise deux systèmes de stockage complémentaires :
 
@@ -162,7 +273,7 @@ Les principaux modèles PostgreSQL sont notamment définis dans :
 
 Des tables et des vues PostgreSQL permettent également de rapprocher les prix du Bitcoin et les indicateurs macroéconomiques.
 
-### 3. API REST
+### 4. API REST
 
 L’application FastAPI est définie dans `api/main.py`.
 
@@ -178,7 +289,7 @@ Elle permet notamment de :
 - effectuer des prédictions de volatilité à 7 et 30 jours ;
 - exposer les métriques de prédiction à Prometheus.
 
-### 4. Prédiction de volatilité
+### 5. Prédiction de volatilité
 
 Le backend intègre deux modèles AutoGluon correspondant aux horizons suivants :
 
@@ -199,7 +310,7 @@ Pour réaliser une prédiction automatique, le service :
 
 Les routes de prédiction sont protégées par l’authentification JWT.
 
-### 5. Monitoring et observabilité
+### 6. Monitoring et observabilité
 
 Le projet intègre une chaîne de monitoring composée de :
 
@@ -551,6 +662,7 @@ Activer l’environnement API, puis exécuter :
 python -m pytest `
   .\tests\tests_predictions `
   .\tests\tests_monitoring `
+  .\tests\tests_monitoring `
   -v
 ```
 
@@ -567,7 +679,7 @@ Les tests couvrent notamment :
 La dernière validation de cette suite a produit :
 
 ```text
-13 passed
+24 passed
 ```
 
 ### Couverture des tests de prédiction
