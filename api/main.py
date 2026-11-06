@@ -97,7 +97,8 @@ def welcome():
             " Gestion centralisée des erreurs personnalisées",
             " Restitution des données PostgreSQL et MongoDB",
             " Prêt pour intégration dans des dashboards ou outils d'analyse IA",
-            " Prédictions de la volatilité du Bitcoin à 7 et 30 jours"
+            " Prédictions de la volatilité du Bitcoin à 7 et 30 jours",
+            " Monitoring des prédictions de volatilité avec Prometheus"
         ],
         
         # routes de l'API → Pour guider rapidement un utilisateur qui teste depuis Swagger
@@ -108,7 +109,8 @@ def welcome():
             "/api/v1//bitcoin-prices": "Prix journaliers du Bitcoin (PostgreSQL)",
             "/api/v1/macro-indicator": "Indicateurs macroéconomiques de la BCE",
             "/api/v1/articles-financiers": "Articles économiques et financiers relatifs au bitcoinet sa volatilité (MongoDB)",
-            "/api/v1/bitcoin/volatility/predictions": "Prédictions de la volatilité du Bitcoin à 7 et 30 jours"
+            "/api/v1/bitcoin/volatility/predictions": "Prédictions de la volatilité du Bitcoin à 7 et 30 jours",
+            "/metrics": "Endpoint pour le monitoring des prédictions de volatilité avec Prometheus"
         }
     }
 

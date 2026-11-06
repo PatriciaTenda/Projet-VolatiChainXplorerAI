@@ -17,10 +17,13 @@ Usage :
 Date : 23/06/2025
 """
 
-import os, sys
+import os
+import sys
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),"..")))
 
 from fastapi.testclient import TestClient
+
 from api.main import app
 
 client = TestClient(app)

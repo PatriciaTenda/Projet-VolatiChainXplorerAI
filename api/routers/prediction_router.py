@@ -8,6 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from api.auths.dependencies import require_user_or_admin
+from api.exceptions.model_exceptions import InferenceError, ModelUnavailableError
 from api.monitoring.metrics import (
     INPUT_DATA_AGE_DAYS,
     PREDICTED_VOLATILITY,
@@ -219,11 +220,48 @@ def get_latest_volatility_prediction(
             detail="Aucune donnée disponible pour la prédiction.",
         ) from error
 
+    # Gérer les exceptions spécifiques aux modèles indisponibles
+    except ModelUnavailableError as error :
+        logger.exception(
+            "Le modèle pour l'horizon %s n' pas pu être chargé.",
+            horizon_days
+        )
+        # Compter les requêtes de prédiction échouées en raison d'une indisponibilité du modèle
+        PREDICTION_REQUESTS_TOTAL.labels(
+            route=route_name,
+            horizon=horizon_label,
+            status="model_unavailable"
+        ).inc()
+        raise HTTPException(
+            status_code=503,
+            detail=str(error),
+        ) from error
+        # Gérer les erreurs d'inférence du modèle
+    except InferenceError as error:
+        logger.error(
+            "Échec de l’inférence pour l’horizon %s jours : %s",
+            horizon_days,
+            error,
+        )
+
+        PREDICTION_REQUESTS_TOTAL.labels(
+            route=route_name,
+            horizon=horizon_label,
+            status="inference_error",
+        ).inc()
+
+        raise HTTPException(
+            status_code=500,
+            detail=(
+                f"La prédiction à {horizon_days} jours "
+                "n’a pas pu être effectuée."
+            ),
+        ) from error
+    # Gérer les exceptions génériques non prévues
     except Exception as error:
         logger.exception(
             "Erreur pendant la prédiction automatique."
         )
-        
         # Compter les requêtes de prédiction échouées en raison d'une erreur interne
         PREDICTION_REQUESTS_TOTAL.labels(
             route=route_name,

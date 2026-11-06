@@ -2,6 +2,8 @@
 import os
 import sys
 
+from dotenv import load_dotenv
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),"..", "..", "..")))
 
 from datetime import datetime, timedelta
@@ -9,8 +11,14 @@ from datetime import datetime, timedelta
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 
+load_dotenv()
+
 # Configuration JWT simple
-SECRET_KEY = "cle_secrete_super_securisee_123456789"  # ⚠️ À remplacer en production
+SECRET_KEY = os.getenv("JWT_SECRET_KEY")  # ⚠️ À remplacer en production
+
+if not SECRET_KEY:
+    raise RuntimeError("JWT_SECRET_KEY est absente.")
+
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
@@ -97,12 +105,13 @@ class JWTHandler:
 
             exp = payload.get("exp")
             if exp and datetime.now() > datetime.fromtimestamp(exp):
-                return None
+                raise JWTError("Token est expiré.")
 
             return {
                 "user_id": payload.get("user_id"),
                 "email": payload.get("email"),
                 "role": payload.get("role")
             }
-        except JWTError:
+        except JWTError as e:
+            print(f"JWT Error: {e}")
             return None
