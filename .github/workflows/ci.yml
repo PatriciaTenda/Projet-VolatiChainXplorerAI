@@ -11,7 +11,7 @@ permissions:
 
 jobs:
     test:
-        runs-on: ubuntu-latest
+        runs-on: ubuntu-24.04
 
         env:
             JWT_SECRET_KEY: "ci_only_secret_key_not_for_production_123456789"
