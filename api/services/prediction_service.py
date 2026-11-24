@@ -32,21 +32,40 @@ model_path_30d = (
     / "predictor_30d"
 )
 
-# Vérifier et charger les modèles une seule fois au demarrage de l'API
-if not model_path_7d.exists() or not model_path_30d.exists():
-    logger.error("Les modèles n'ont pas été trouvés aux chemins spécifiés.")
-    raise FileNotFoundError(
-        "Les modèles n'ont pas été trouvés aux chemins spécifiés : - %s - %s",
-        model_path_7d, model_path_30d,
-    )
+def load_predictor(
+    model_path: Path,
+    horizon_days: int,
+)-> TabularPredictor | None:
+    """Charger les modeles à partir des chemins spécifiès"""
+    if not model_path.exists():
+        logger.error(
+            "Le modèle %s non trouvé au chemin: %s.",
+            horizon_days,
+            model_path,
+        )
+        return None
     
-logger.info("Chargement des modèles depuis les chemins spécifiés.")
+    try:
+        logger.info("Chargement de modèle depuis le chemin spécifié : %s.", model_path)
 
-predictor_7d = TabularPredictor.load(str(model_path_7d))
-predictor_30d = TabularPredictor.load(str(model_path_30d))
+        predictor = TabularPredictor.load(str(model_path))
 
-logger.info("Modeles chargés avec succès au demarrage de l'API")
+        logger.info(
+            "Modele de l'horizon à %s jours chargé avec succès au demarrage de l'API",
+            horizon_days
+        )
+        return predictor
 
+    except Exception:
+        logger.exception(
+            "Echec du chargement du modèle %s jours",
+            horizon_days
+        )
+        return None
+
+# Charger les modèles au démarrage de l'API
+predictor_7d = load_predictor(model_path_7d, 7)
+predictor_30d = load_predictor(model_path_30d, 30)
 
 def predict_volatility(
     features : dict, 
@@ -89,7 +108,7 @@ def predict_volatility(
         # Faire la prédiction avec le modèle choisi
         prediction = predictor.predict(
             input_data,
-            model = "WeightedEnsemble_L2"
+            model="WeightedEnsemble_L2"
         )
         predicted_volatility = float(prediction.iloc[0])
     except Exception as error:

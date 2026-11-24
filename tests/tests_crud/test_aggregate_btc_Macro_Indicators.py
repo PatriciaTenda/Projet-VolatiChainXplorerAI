@@ -3,6 +3,10 @@
 import os
 import sys
 
+import pytest
+
+pytestmark = pytest.mark.integration
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
 from datetime import date
