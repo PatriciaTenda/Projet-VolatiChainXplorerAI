@@ -11,7 +11,23 @@ import pytest
 from api.services import prediction_service
 
 
-# Simmuler les prédicteurs de volatilité autogluon
+# ====================================== test load_predictor ======================================
+def test_load_predictor_returns_none_when_model_is_missing(
+    tmp_path,
+):
+    """Vérifier qu'un modèle absent ne bloque pas le démarrage."""
+
+    missing_model_path = tmp_path / "missing_predictor"
+
+    result = prediction_service.load_predictor(
+        missing_model_path,
+        7,
+    )
+
+    assert result is None
+
+
+# ====================================== FakePredictor ======================================
 class FakePredictor:
     def __init__(self, target, predicted_volatility):
         self.label = target
