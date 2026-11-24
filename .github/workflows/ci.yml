@@ -15,12 +15,18 @@ jobs:
 
         env:
             JWT_SECRET_KEY: "ci_only_secret_key_not_for_production_123456789"
+
             URL: "postgresql://ci_user:ci_password@localhost:5432/ci_database"
             POSTGRES_USER: "ci_user"
             POSTGRES_PASSWORD: "ci_password"
             POSTGRES_DB: "ci_database"
             POSTGRES_HOST: "localhost"
             POSTGRES_PORT: "5432"
+
+            MONGO_USER: "ci_user"
+            MONGO_PASSWORD: "ci_password"
+            MONGO_DB: "ci_database"
+            MONGO_PORT: "27017"
 
         steps:
             - name: Checkout du code
